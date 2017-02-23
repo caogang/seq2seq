@@ -207,8 +207,8 @@ class Seq2Seq(object):
                                            dec_target_batch=dec_tr)
                 ppl = ppl + cur_ppl
 
-                print 'epoch %d, ppl is %f' % (i, cur_ppl)
-            self.save_params("snapshots", epoch)
+            print 'epoch %d, ppl is %f' % (i, cur_ppl)
+            self.save_params("snapshots", i)
 
     def save_params (self, path, epoch):
         self.encoder.save_params("%s/encoder_params-%d" %(path, epoch))

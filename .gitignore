@@ -18,3 +18,5 @@ bucket_io.pyc
 data/data.pickle
 lstm_copy.pyc
 lstm_test.pyc
+snapshots/
+*.log

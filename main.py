@@ -6,7 +6,7 @@ from datautils import Seq2SeqIter, default_build_vocab
 from seq2seq import Seq2Seq
 
 
-CTX = mx.cpu()
+CTX = mx.gpu(0)
 
 def main(**args):
     vocab, vocab_rsd = default_build_vocab('./data/vocab.txt')
