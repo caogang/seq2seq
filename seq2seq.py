@@ -208,6 +208,21 @@ class Seq2Seq(object):
                 ppl = ppl + cur_ppl
 
                 print 'epoch %d, ppl is %f' % (i, cur_ppl)
+            self.save_params("snapshots", epoch)
+
+    def save_params (self, path, epoch):
+        self.encoder.save_params("%s/encoder_params-%d" %(path, epoch))
+        self.decoder.save_params("%s/decoder_params-%d" %(path, epoch))
+        self.embed_dict[self.seq_len].save_params("%s/embedding_params-%d" %(path, epoch))
+        print self.encoder.get_params()
+        print self.decoder.get_params()
+        print self.embed_dict[self.seq_len].get_params()
+
+    def load_params (self, path, epoch):
+        self.encoder.load_params("%s/encoder_params-%d" %(path, epoch))
+        self.decoder.load_params("%s/decoder_params-%d" %(path, epoch))
+        self.embed_dict[self.seq_len].load_params("%s/embedding_params-%d" %(path, epoch))
+
 
     # TODO
     def eval( self, sentence, vocab_rsd, vocab ):
