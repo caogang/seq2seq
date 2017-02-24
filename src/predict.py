@@ -22,10 +22,7 @@ if __name__ == "__main__":
     vocab, rev_vocab = data_utils.initialize_vocabulary(vocabulary_path)
 
     devs = mx.context.gpu(0)
-    # _, arg_params, __ = mx.model.load_checkpoint("../snapshots/forward_seq2seq", 60)
-    # _, arg_params, __ = mx.model.load_checkpoint("../snapshots/autoencoder_test_bucket", 3)
-    # _, arg_params, __ = mx.model.load_checkpoint("../snapshots/mutual_information", 1)
-    _, arg_params, __ = mx.model.load_checkpoint("../snapshots/dialogue_simulation", 1)
+    _, arg_params, __ = mx.model.load_checkpoint("../snapshots/forward_seq2seq", 20)
     model = Seq2SeqInferenceModel(30, batch_size, learning_rate, 
                 vocab, rev_vocab, num_hidden, num_embed, num_layer, arg_params, beam_size, ctx=devs , dropout=0. )
 
