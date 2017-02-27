@@ -31,7 +31,7 @@ import argparse
 from collections import OrderedDict
 
 from cornelldata import CornellData
-import mxnet
+import mxnet as mx
 
 class Batch:
     """Struct containing batches info
@@ -526,20 +526,17 @@ class SimpleBatch(object):
 
 class CornellDataIter(mx.io.DataIter):
     def __init__(self, textData, buckets, batch_size, init_states, forward_data_feed, data_name="data", label_name="label"):
-        super(BucketSentenceIter, self).__init__()
+        super(CornellDataIter, self).__init__()
         self.vocab_size = textData.getVocabularySize()
         self.data_name = data_name
         self.label_name = label_name
         self.batch_size = batch_size
-        self.num_layers = num_layers
+        #self.num_layers = num_layers
         buckets.sort()
         self.buckets = buckets
         self.forward_data_feed = forward_data_feed
         self.data = [[] for _ in buckets]
         self.default_bucket_key = max(buckets)
-
-        print("Summary of dataset ==================")
-        print("bucket of len %3d : %d samples" % (default_bucket_key, textData.getSampleSize) )
 
         self.batch_size = batch_size
 
@@ -607,7 +604,7 @@ if __name__ == "__main__":
     args.maxLengthDeco = args.maxLength + 2
     batches = textData.getBatches()
     print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
-    init_c = [("encode_init_c", (batch_size, num_layers, num_hidden))]
-    init_h = [("encode_init_h", (batch_size, num_layers, num_hidden))]
+    init_c = [("encode_init_c", (args.batchSize, 2, 1024))] # Need to fix
+    init_h = [("encode_init_h", (args.batchSize, 2, 1024))] # Need to fix
     init_states = init_c + init_h
-    data = CornellDataIter(textData, [args.maxLength], args.batchSize, init_states, True):
+    data = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True)
