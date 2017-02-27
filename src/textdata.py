@@ -509,11 +509,12 @@ def tqdm_wrap(iterable, *args, **kwargs):
     return iterable
 
 class SimpleBatch(object):
-    def __init__(self, data_names, data, label_names, label):
+    def __init__(self, data_names, data, label_names, label, bucket_key):
         self.data = data
         self.label = [label]
         self.data_names = data_names
         self.label_names = label_names
+        self.bucket_key = bucket_key
 
     @property
     def provide_data(self):
@@ -527,6 +528,7 @@ class SimpleBatch(object):
 class CornellDataIter(mx.io.DataIter):
     def __init__(self, textData, buckets, batch_size, init_states, forward_data_feed, data_name="data", label_name="label"):
         super(CornellDataIter, self).__init__()
+        self.textData = textData
         self.vocab_size = textData.getVocabularySize()
         self.data_name = data_name
         self.label_name = label_name
@@ -542,11 +544,11 @@ class CornellDataIter(mx.io.DataIter):
 
         self.init_states = init_states
         self.init_state_arrays = [mx.nd.zeros(x[1]) for x in init_states]
-        self.provide_data = [('data', (self.batch_size, self.default_bucket_key)),('decoding_data',(self.batch_size,self.default_bucket_key))] + init_states
-        self.provide_label = [('softmax_label', (self.batch_size, self.default_bucket_key))]
+        self.provide_data = [('data', (self.batch_size, self.default_bucket_key)),('decoding_data',(self.batch_size,self.default_bucket_key + 2))] + init_states
+        self.provide_label = [('softmax_label', (self.batch_size, self.default_bucket_key + 2))]
 
     def __iter__(self):
-        batches = textData.getBatches()
+        batches = self.textData.getBatches()
         for batch in batches:
             encodeMatrix = np.matrix(batch.encoderSeqs)
             encodeBatchMajor = encodeMatrix.transpose()
@@ -557,12 +559,12 @@ class CornellDataIter(mx.io.DataIter):
 
             init_state_names = [x[0] for x in self.init_states]
             batch_encoding_input = mx.nd.array(encodeBatchMajor)
-            batch_decoding_input = mx.nd.array(batch_decoding_input)
+            batch_decoding_input = mx.nd.array(decodeBatchMajor)
             label_all = mx.nd.array(labelBatchMajor)
             data_all = [batch_encoding_input, batch_decoding_input] + self.init_state_arrays
             data_names = ["data", "decoding_data"] + init_state_names
             label_names = ["softmax_label"]
-            data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
+            data_batch = SimpleBatch(data_names, data_all, label_names, label_all, self.default_bucket_key)
             yield data_batch
 
 
@@ -576,7 +578,7 @@ globalArgs.add_argument('--test',
                                 help='if present, launch the program try to answer all sentences from data/test/ with'
                                      ' the defined model(s), in interactive mode, the user can wrote his own sentences,'
                                      ' use daemon mode to integrate the chatbot in another program')
-globalArgs.add_argument('--rootDir', type=str, default=None, help='folder where to look for the models and data')
+globalArgs.add_argument('--rootDir', type=str, default="../", help='folder where to look for the models and data')
 globalArgs.add_argument('--playDataset', type=int, nargs='?', const=10, default=None,  help='if set, the program  will randomly play some samples(can be use conjointly with createDataset if this is the only action you want to perform)')
 globalArgs.add_argument('--autoEncode', action='store_true', help='Randomly pick the question or the answer and use it both as input and output')
 globalArgs.add_argument('--watsonMode', action='store_true', help='Inverse the questions and answer when training (the network try to guess the question)')

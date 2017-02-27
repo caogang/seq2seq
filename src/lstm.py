@@ -63,7 +63,7 @@ def seq2seq_lstm_unroll(seq_len, num_hidden, num_embed, num_vocab, num_layer, dr
     label = mx.sym.Reshape(data=label, shape=(-1,))
 
     sm = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax', use_ignore = True)
-    sm_reshape = mx.sym.Reshape(data=sm, shape=(seq_len, -1, num_vocab))
+    sm_reshape = mx.sym.Reshape(data=sm, shape=(seq_len + 2, -1, num_vocab))
     return mx.sym.SwapAxis(data=sm_reshape, dim1=0, dim2=1)
 
 

@@ -7,7 +7,10 @@ import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
 logger = logging.getLogger(__name__)
 
+import argparse
 parser = argparse.ArgumentParser()
+
+from textdata import TextData, CornellDataIter
 
 # Global options
 globalArgs = parser.add_argument_group('Global options')
@@ -43,7 +46,7 @@ trainingArgs.add_argument('--numEpochs', type=int, default=30, help='maximum num
 trainingArgs.add_argument('--saveEvery', type=int, default=2000, help='nb of mini-batch step before creating a model checkpoint')
 trainingArgs.add_argument('--batchSize', type=int, default=256, help='mini-batch size')
 trainingArgs.add_argument('--learningRate', type=float, default=0.002, help='Learning rate')
-trainingArgs.add_argument('--dropout', type=float, default=0.9, help='Dropout rate (keep probabilities)')
+trainingArgs.add_argument('--dropout', type=float, default=0., help='Dropout rate (keep probabilities)')
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -72,7 +75,7 @@ if __name__ == "__main__":
     if 1 in training_stage:
         def sym_gen(seq_len):
             return seq2seq_lstm_unroll(seq_len, num_hidden, num_embed,
-                    num_vocab=textData.getVocabularySize, num_layer = num_layers, dropout=args.dropout)
+                    num_vocab=textData.getVocabularySize(), num_layer = num_layers, dropout=args.dropout)
         forward_seq2seq_sym = sym_gen
 
         init_c = [("encode_init_c", (batch_size, num_layers, num_hidden))]
