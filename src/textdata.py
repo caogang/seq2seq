@@ -31,6 +31,7 @@ import argparse
 from collections import OrderedDict
 
 from cornelldata import CornellData
+import mxnet
 
 class Batch:
     """Struct containing batches info
@@ -507,6 +508,66 @@ def tqdm_wrap(iterable, *args, **kwargs):
         return tqdm(iterable, *args, **kwargs)
     return iterable
 
+class SimpleBatch(object):
+    def __init__(self, data_names, data, label_names, label):
+        self.data = data
+        self.label = [label]
+        self.data_names = data_names
+        self.label_names = label_names
+
+    @property
+    def provide_data(self):
+        a = [(n, x.shape) for n, x in zip(self.data_names, self.data)]
+        return a
+
+    @property
+    def provide_label(self):
+        return [(n, x.shape) for n, x in zip(self.label_names, self.label)]
+
+class CornellDataIter(mx.io.DataIter):
+    def __init__(self, textData, buckets, batch_size, init_states, forward_data_feed, data_name="data", label_name="label"):
+        super(BucketSentenceIter, self).__init__()
+        self.vocab_size = textData.getVocabularySize()
+        self.data_name = data_name
+        self.label_name = label_name
+        self.batch_size = batch_size
+        self.num_layers = num_layers
+        buckets.sort()
+        self.buckets = buckets
+        self.forward_data_feed = forward_data_feed
+        self.data = [[] for _ in buckets]
+        self.default_bucket_key = max(buckets)
+
+        print("Summary of dataset ==================")
+        print("bucket of len %3d : %d samples" % (default_bucket_key, textData.getSampleSize) )
+
+        self.batch_size = batch_size
+
+        self.init_states = init_states
+        self.init_state_arrays = [mx.nd.zeros(x[1]) for x in init_states]
+        self.provide_data = [('data', (self.batch_size, self.default_bucket_key)),('decoding_data',(self.batch_size,self.default_bucket_key))] + init_states
+        self.provide_label = [('softmax_label', (self.batch_size, self.default_bucket_key))]
+
+    def __iter__(self):
+        batches = textData.getBatches()
+        for batch in batches:
+            encodeMatrix = np.matrix(batch.encoderSeqs)
+            encodeBatchMajor = encodeMatrix.transpose()
+            decodeMatrix = np.matrix(batch.decoderSeqs)
+            decodeBatchMajor = decodeMatrix.transpose()
+            labelMatrix = np.matrix(batch.targetSeqs)
+            labelBatchMajor = labelMatrix.transpose()
+
+            init_state_names = [x[0] for x in self.init_states]
+            batch_encoding_input = mx.nd.array(encodeBatchMajor)
+            batch_decoding_input = mx.nd.array(batch_decoding_input)
+            label_all = mx.nd.array(labelBatchMajor)
+            data_all = [batch_encoding_input, batch_decoding_input] + self.init_state_arrays
+            data_names = ["data", "decoding_data"] + init_state_names
+            label_names = ["softmax_label"]
+            data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
+            yield data_batch
+
 
 parser = argparse.ArgumentParser()
 
@@ -546,3 +607,7 @@ if __name__ == "__main__":
     args.maxLengthDeco = args.maxLength + 2
     batches = textData.getBatches()
     print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
+    init_c = [("encode_init_c", (batch_size, num_layers, num_hidden))]
+    init_h = [("encode_init_h", (batch_size, num_layers, num_hidden))]
+    init_states = init_c + init_h
+    data = CornellDataIter(textData, [args.maxLength], args.batchSize, init_states, True):
