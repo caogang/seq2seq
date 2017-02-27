@@ -546,10 +546,18 @@ class CornellDataIter(mx.io.DataIter):
         self.init_state_arrays = [mx.nd.zeros(x[1]) for x in init_states]
         self.provide_data = [('data', (self.batch_size, self.default_bucket_key)),('decoding_data',(self.batch_size,self.default_bucket_key + 2))] + init_states
         self.provide_label = [('softmax_label', (self.batch_size, self.default_bucket_key + 2))]
+        self.curr_idx = 0
+        self.batches = self.textData.getBatches()
 
     def __iter__(self):
-        batches = self.textData.getBatches()
-        for batch in batches:
+        return self
+
+    def next(self):
+        if self.curr_idx < len(self.batches):
+
+            batch = self.batches[self.curr_idx]
+            self.curr_idx += 1
+
             encodeMatrix = np.matrix(batch.encoderSeqs)
             encodeBatchMajor = encodeMatrix.transpose()
             decodeMatrix = np.matrix(batch.decoderSeqs)
@@ -565,7 +573,14 @@ class CornellDataIter(mx.io.DataIter):
             data_names = ["data", "decoding_data"] + init_state_names
             label_names = ["softmax_label"]
             data_batch = SimpleBatch(data_names, data_all, label_names, label_all, self.default_bucket_key)
-            yield data_batch
+            return data_batch
+        else:
+            raise StopIteration
+
+    def reset(self):
+        self.textData.shuffle()
+        self.batches = self.textData.getBatches()
+        self.curr_idx = 0
 
 
 parser = argparse.ArgumentParser()
