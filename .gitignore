@@ -3,3 +3,4 @@ data/
 *.pyc
 *.log
 snapshots/
+mxnet/
