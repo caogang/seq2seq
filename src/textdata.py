@@ -553,11 +553,10 @@ class CornellDataIter(mx.io.DataIter):
         return self
 
     def next(self):
-        if self.curr_idx < len(self.batches):
+        if self.curr_idx < len(self.batches) - 1: # the last batch is not fit batch_size, so not use.
 
             batch = self.batches[self.curr_idx]
             self.curr_idx += 1
-
             encodeMatrix = np.matrix(batch.encoderSeqs)
             encodeBatchMajor = encodeMatrix.transpose()
             decodeMatrix = np.matrix(batch.decoderSeqs)
