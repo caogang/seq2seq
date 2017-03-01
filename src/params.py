@@ -1,4 +1,5 @@
 import argparse
+from textdata import TextData
 
 def getArgs():
     parser = argparse.ArgumentParser()
