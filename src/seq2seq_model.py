@@ -259,7 +259,7 @@ class Seq2SeqInferenceModelCornellData():
                  dropout=0.):
         self.seq_len = seq_len
         self.textData = textData
-        self.num_vocab = len(textData.getVocabularySize())
+        self.num_vocab = textData.getVocabularySize()
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.num_hidden = num_hidden
