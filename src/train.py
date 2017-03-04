@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 from textdata import TextData, CornellDataIter
 from params import getArgs
 
+
 if __name__ == "__main__":
     #args = parser.parse_args()
     args = getArgs()
@@ -65,4 +66,4 @@ if __name__ == "__main__":
         model.fit(X = forward_data_train,
                   eval_metric = "accuracy",
                   batch_end_callback=mx.callback.Speedometer(batch_size, 50),
-                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 1))
+                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 10))
