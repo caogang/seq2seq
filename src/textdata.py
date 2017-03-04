@@ -471,6 +471,22 @@ class TextData:
 
         return batch
 
+    def sentence2id(self, sentence):
+        if sentence == '':
+            return None
+
+        # First step: Divide the sentence in token
+        tokens = nltk.word_tokenize(sentence)
+        if len(tokens) > self.args.maxLength:
+            return None
+
+        # Second step: Convert the token in word ids
+        wordIds = []
+        for token in tokens:
+            wordIds.append(self.getWordId(token, create=False))  # Create the vocabulary and the training sentences
+
+        return wordIds
+
     def deco2sentence(self, decoderOutputs):
         """Decode the output of the decoder and return a human friendly sentence
         decoderOutputs (list<np.array>):
