@@ -6,6 +6,7 @@ def getArgs():
 
     # Global options
     globalArgs = parser.add_argument_group('Global options')
+    globalArgs.add_argument('--load', type=int, default=None,  help='if set, will load the corresponded checkpoint to do test(only valid for predict*.py and dump*.py)')
     globalArgs.add_argument('--test',
                                     nargs='?',
                                     default=None,
@@ -34,7 +35,7 @@ def getArgs():
     nnArgs.add_argument('--softmaxSamples', type=int, default=0, help='Number of samples in the sampled softmax loss function. A value of 0 deactivates sampled softmax')
 
     trainingArgs = parser.add_argument_group('Training options')
-    trainingArgs.add_argument('--numEpochs', type=int, default=100, help='maximum number of epochs to run')
+    trainingArgs.add_argument('--numEpochs', type=int, default=5000, help='maximum number of epochs to run')
     trainingArgs.add_argument('--saveEvery', type=int, default=2000, help='nb of mini-batch step before creating a model checkpoint')
     trainingArgs.add_argument('--batchSize', type=int, default=256, help='mini-batch size')
     trainingArgs.add_argument('--learningRate', type=float, default=0.002, help='Learning rate')

@@ -66,4 +66,4 @@ if __name__ == "__main__":
         model.fit(X = forward_data_train,
                   eval_metric = "accuracy",
                   batch_end_callback=mx.callback.Speedometer(batch_size, 50),
-                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 10))
+                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 50))
