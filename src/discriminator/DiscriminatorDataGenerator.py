@@ -1,5 +1,8 @@
 import random
 import os
+import sys
+sys.path.append('../')
+sys.path.append('./')
 from params import getArgs
 from textdata import TextData
 
@@ -9,7 +12,7 @@ class DiscriminatorData():
         self.textData = textData
         self.model = pretrainedSeq2Seq
 
-        self.samplesDir = os.path.join(self.args.rootDir, 'data/samples/')
+        self.samplesDir = os.path.join(args.rootDir, 'data/samples/')
         self.trainingSamples = textData.trainingSamples
         pass
 
@@ -30,4 +33,4 @@ if __name__ == "__main__":
     data = DiscriminatorData(args, originData, None)
     print originData.getSampleSize()
     print originData.getVocabularySize()
-    print data.trainingSamples
+    print data.trainingSamples[0]
