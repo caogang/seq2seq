@@ -12,9 +12,17 @@ import mxnet as mx
 import data_utils
 
 
+class Batch:
+    def __init__(self):
+        self.question = []
+        self.answer = []
+        # 0: machine, 1: human
+        self.labels = []
+
 class DiscriminatorData():
 
     def __init__(self, args, textData, pretrainedSeq2Seq, forceRegenerate = False):
+        self.args = args
         self.textData = textData
         self.model = pretrainedSeq2Seq
         self.forceRegenerate = forceRegenerate
@@ -24,8 +32,39 @@ class DiscriminatorData():
         self.loadData(samplesDir)
         pass
 
+    def __createBatch(self, samples):
+        """
+        Generate a batch using padding and reverse
+        :return: a Batch (batchSize, Batch)
+        """
+        pass
+
     def getBatches(self):
+        """
+        This function will shuffle first, and return batches
+        :return:list<Batch>, guarantee every batch is batchSize
+        """
         self.shuffle()
+
+        batches = []
+
+        # remove the batch whose length is not equal to batchSize
+        removeLast = False
+
+        def genNextSamples():
+            """ Generator over the mini-batch training samples
+            """
+            for i in range(0, self.getSampleSize(), self.args.batchSize):
+                if i + self.args.batchSize >= self.getSampleSize():
+                    removeLast = True
+                yield self.trainingSamples[i:min(i + self.args.batchSize, self.getSampleSize())]
+
+        for samples in genNextSamples():
+            if removeLast:
+                break
+            batch = self.__createBatch(samples)
+            batches.append(batch)
+        return batches
 
     def shuffle(self):
         """Shuffle the training samples
@@ -66,25 +105,36 @@ class DiscriminatorData():
         process = 0
         lenMax = len(positiveSamples)
 
+        # add human label
+        for qaPair in positiveSamples:
+            # human label
+            qaPair.append(1)
+
         for qaPair in positiveSamples:
             q = qaPair[0]
-            a = qaPair[1]
             s = inferenceModel.response(inferenceModel.forward_beam(q)[0].get_concat_sentence())
             s = s.rstrip('<eos>')
             negetiveA = textData.sentence2id(s)
             pair = []
             pair.append(q)
             pair.append(negetiveA)
+            # machine label
+            pair.append(0)
             negetiveSamples.append(pair)
             process += 1
             print 'process: ' + str(process) + '/ max: ' + str(lenMax)
 
+        # [[list < id >, list < id >, human_label], ...]
         self.trainingSamples = positiveSamples
         print len(self.trainingSamples)
         print len(negetiveSamples)
         # assert len(self.trainingSamples) == len(negetiveSamples)
         self.trainingSamples.extend(negetiveSamples)
         print len(self.trainingSamples)
+        pass
+
+    def getSampleSize(self):
+        return len(self.trainingSamples)
 
 if __name__ == "__main__":
     args = getArgs()
