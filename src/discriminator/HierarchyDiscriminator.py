@@ -39,9 +39,11 @@ def hierarchyDiscriminatorSymbol(inputSeqLen, outputSeqLen, contentLen,
     # Logistic Classifier
     clsWeight = mx.sym.Variable('clsWeight')
     clsBias = mx.sym.Variable('clsBias')
-    label = mx.sym.Variable('logisticLabel')
+    label = mx.sym.Variable('softmaxLabel')
 
     # -----------Construct Symbols----------- #
+
+    # Embedding Symbol
     inputEmbed = mx.sym.Embedding(data=inputData,
                                   input_dim=vocabNums,
                                   weight=embedWeight,
@@ -53,6 +55,7 @@ def hierarchyDiscriminatorSymbol(inputSeqLen, outputSeqLen, contentLen,
                                    output_dim=embedNums,
                                    name='outputEmbed')
 
+    # Encoder Symbol
     inputEncoder = mx.sym.RNN(data=inputEmbed,
                               parameters=inputEncoderWeight,
                               state=inputEncoderInitH,
@@ -79,10 +82,46 @@ def hierarchyDiscriminatorSymbol(inputSeqLen, outputSeqLen, contentLen,
     hOutputEncoder = outputEncoder[1]
     cOutputEncoder = outputEncoder[2]
 
-    # FIXME:
-    contentData = mx.sym.Concat(hInputEncoder, hOutputEncoder,)
+    # Concat content data from hInputEncoder and hOutputEncoder
+    contentData = mx.sym.Concat(hInputEncoder, hOutputEncoder, dim=0)
 
-    contentEncoder = mx.sym.RNN()
+    # Content Encoder Symbol
+    contentEncoder = mx.sym.RNN(data=contentData,
+                                parameters=contentEncoderWeight,
+                                state=contentEncoderInitH,
+                                state_cell=contentEncoderInitC,
+                                state_size=contentHiddenNums,
+                                num_layers=contentLayerNums,
+                                state_outputs=True,
+                                mode='lstm',
+                                name='contentEncoder')
+
+    oContentEncoder = contentEncoder[0]
+    hContentEncoder = contentEncoder[1]
+    cContentEncoder = contentEncoder[2]
+
+    # 2-SoftmaxOut Symbol
+    hContentEncoderReshape = mx.sym.Reshape(data=hContentEncoder, shape=(-1, contentHiddenNums))
+    pred = mx.sym.FullyConnected(data=hContentEncoderReshape,
+                                 num_hidden=2,
+                                 weight=clsWeight,
+                                 bias=clsBias,
+                                 name='pred')
+    binaryClassifier = mx.sym.SoftmaxOutput(data=pred,
+                                            label=label,
+                                            name='2-softmax',
+                                            use_ignore=True)
+
+    return mx.sym.Group([binaryClassifier,
+                         mx.sym.BlockGrad(data=oInputEncoder),
+                         mx.sym.BlockGrad(data=cinputEncoder),
+                         mx.sym.BlockGrad(data=oOutputEncoder),
+                         mx.sym.BlockGrad(data=cOutputEncoder),
+                         mx.sym.BlockGrad(data=oContentEncoder),
+                         mx.sym.BlockGrad(data=cContentEncoder)])
 
 
-    pass
+class HierarchyDiscriminatorModel:
+    def __init__(self):
+
+        pass
