@@ -34,3 +34,5 @@ if __name__ == "__main__":
     print originData.getSampleSize()
     print originData.getVocabularySize()
     print data.trainingSamples[0]
+    print originData.sequence2str(data.trainingSamples[0][0])
+    print originData.sequence2str(data.trainingSamples[0][1])
