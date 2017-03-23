@@ -3,13 +3,13 @@ import os
 import sys
 import copy
 import pickle
-import data_utils
 sys.path.append('../')
 sys.path.append('./')
 from params import getArgs
 from textdata import TextData
 from seq2seq_model import Seq2SeqInferenceModelCornellData
 import mxnet as mx
+import data_utils
 
 
 class DiscriminatorData():
@@ -17,8 +17,9 @@ class DiscriminatorData():
     def __init__(self, args, textData, pretrainedSeq2Seq, forceRegenerate = False):
         self.textData = textData
         self.model = pretrainedSeq2Seq
+        self.forceRegenerate = forceRegenerate
 
-        self.sampleName = 'discriminator.pkl'
+        self.samplesName = 'discriminator.pkl'
         samplesDir = os.path.join(args.rootDir, 'data/samples/')
         self.loadData(samplesDir)
         pass
@@ -38,7 +39,7 @@ class DiscriminatorData():
         if os.path.exists(os.path.join(dirName, self.samplesName)):
             datasetExist = True
 
-        if not datasetExist:  # First time we load the database: creating all files
+        if not datasetExist or self.forceRegenerate:  # First time we load the database: creating all files
             print('Discriminator Training samples not found. Creating dataset...')
 
             self.generateNegetiveSamples(self.textData, self.model)
@@ -62,25 +63,38 @@ class DiscriminatorData():
         positiveSamples = copy.deepcopy(textData.trainingSamples)
         negetiveSamples = []
 
+        process = 0
+        lenMax = len(positiveSamples)
+
         for qaPair in positiveSamples:
             q = qaPair[0]
             a = qaPair[1]
-            str = inferenceModel.response(inferenceModel.forward_beam(q)[0].get_concat_sentence())
-            print textData.sentence2str(q)
-            print textData.sentence2str(a)
-            print str
-            break
+            s = inferenceModel.response(inferenceModel.forward_beam(q)[0].get_concat_sentence())
+            s = s.rstrip('<eos>')
+            negetiveA = textData.sentence2id(s)
+            pair = []
+            pair.append(q)
+            pair.append(negetiveA)
+            negetiveSamples.append(pair)
+            process += 1
+            print 'process: ' + str(process) + '/ max: ' + str(lenMax)
+
+        self.trainingSamples = positiveSamples
+        print len(self.trainingSamples)
+        print len(negetiveSamples)
+        # assert len(self.trainingSamples) == len(negetiveSamples)
+        self.trainingSamples.extend(negetiveSamples)
+        print len(self.trainingSamples)
 
 if __name__ == "__main__":
     args = getArgs()
     originData = TextData(args)
-    data = DiscriminatorData(args, originData, None)
     print originData.getSampleSize()
     print originData.getVocabularySize()
-    print data.trainingSamples[0]
-    print originData.sequence2str(data.trainingSamples[0][0])
-    print originData.sequence2str(data.trainingSamples[0][1])
-    print originData.sentence2id(originData.sequence2str(data.trainingSamples[0][0]))
+    #print data.trainingSamples[0]
+    #print originData.sequence2str(data.trainingSamples[0][0])
+    #print originData.sequence2str(data.trainingSamples[0][1])
+    #print originData.sentence2id(originData.sequence2str(data.trainingSamples[0][0]))
 
     batch_size = 1
     buckets = data_utils.BUCKETS
@@ -90,7 +104,7 @@ if __name__ == "__main__":
     momentum = 0.0
     num_layer = args.numLayers
     learning_rate = args.learningRate
-    beam_size = 10  # 10
+    beam_size = 5  # 10
 
     args.maxLengthEnco = args.maxLength
     args.maxLengthDeco = args.maxLength + 2
@@ -105,5 +119,5 @@ if __name__ == "__main__":
                                              arg_params, beam_size,
                                              ctx=devs, dropout=0.)
 
-    data.generateNegetiveSamples(originData, model)
+    data = DiscriminatorData(args, originData, model, forceRegenerate=True)
     pass

@@ -20,7 +20,7 @@ if __name__ == "__main__":
     momentum = 0.0
     num_layer = args.numLayers
     learning_rate = args.learningRate
-    beam_size = 10#10
+    beam_size = 5#10
 
     textData = TextData(args)
     args.maxLengthEnco = args.maxLength
