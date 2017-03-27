@@ -37,7 +37,18 @@ class DiscriminatorData():
         Generate a batch using padding and reverse
         :return: a Batch (batchSize, Batch)
         """
-        pass
+        batch = Batch()
+        batchSize = len(samples)
+
+        for i in range(batchSize):
+            sample = samples[i]
+            batch.question.append(list(reversed(sample[0])))
+            batch.answer.append(list(reversed(sample[1])))
+            batch.labels.append(sample[2])
+            batch.question[i] = [self.padToken] * (self.args.maxLengthEnco - len(batch.question[i])) + batch.question[i]  # Left padding for the input
+            batch.answer[i] = [self.padToken] * (self.args.maxLengthEnco - len(batch.answer[i])) + batch.answer[i]  # Left padding for the input
+
+        return batch
 
     def getBatches(self):
         """
@@ -170,4 +181,5 @@ if __name__ == "__main__":
                                              ctx=devs, dropout=0.)
 
     data = DiscriminatorData(args, originData, model, forceRegenerate=True)
+    batches = data.getBatches()
     pass
