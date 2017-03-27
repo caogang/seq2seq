@@ -84,6 +84,22 @@ class DiscriminatorData():
         random.shuffle(self.trainingSamples)
         pass
 
+    def __checkValidTrainingSamples(self):
+        valid = True
+
+        orgLen = len(self.trainingSamples)
+
+        for sample in self.trainingSamples:
+            if sample[0] is None or sample[1] is None:
+                self.trainingSamples.remove(sample)
+                valid = False
+
+        if not valid:
+            print('Origin discriminator training size : ' + str(orgLen))
+            print('Clean discriminator training size : ' + str(len(self.trainingSamples)))
+
+        return valid
+
     def loadData(self, dirName):
         datasetExist = False
         print(os.path.join(dirName, self.samplesName))
@@ -95,6 +111,8 @@ class DiscriminatorData():
             print('Discriminator Training samples not found. Creating dataset...')
 
             self.generateNegetiveSamples(self.textData, self.model)
+
+            self.__checkValidTrainingSamples()
 
             # Saving
             print('Saving discriminator dataset...')
@@ -108,6 +126,15 @@ class DiscriminatorData():
             with open(os.path.join(dirName, self.samplesName), 'rb') as handle:
                 data = pickle.load(handle)
                 self.trainingSamples = data['trainingSamples']
+
+            if not self.__checkValidTrainingSamples():
+                print('Resaving discriminator dataset...')
+                with open(os.path.join(dirName, self.samplesName), 'wb') as handle:
+                    data = {
+                        'trainingSamples': self.trainingSamples
+                    }
+                    pickle.dump(data, handle, -1)  # Using the highest protocol available
+
         pass
 
     def generateNegetiveSamples(self, textData, inferenceModel):
