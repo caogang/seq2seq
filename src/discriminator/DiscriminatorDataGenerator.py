@@ -39,14 +39,14 @@ class DiscriminatorData():
         """
         batch = Batch()
         batchSize = len(samples)
-
+        # print(samples)
         for i in range(batchSize):
             sample = samples[i]
             batch.question.append(list(reversed(sample[0])))
             batch.answer.append(list(reversed(sample[1])))
             batch.labels.append(sample[2])
-            batch.question[i] = [self.padToken] * (self.args.maxLengthEnco - len(batch.question[i])) + batch.question[i]  # Left padding for the input
-            batch.answer[i] = [self.padToken] * (self.args.maxLengthEnco - len(batch.answer[i])) + batch.answer[i]  # Left padding for the input
+            batch.question[i] = [self.textData.padToken] * (self.args.maxLengthEnco - len(batch.question[i])) + batch.question[i]  # Left padding for the input
+            batch.answer[i] = [self.textData.padToken] * (self.args.maxLengthEnco - len(batch.answer[i])) + batch.answer[i]  # Left padding for the input
 
         return batch
 
@@ -86,6 +86,8 @@ class DiscriminatorData():
 
     def loadData(self, dirName):
         datasetExist = False
+        print(os.path.join(dirName, self.samplesName))
+        print('ForceRegenerate : ' + str(self.forceRegenerate))
         if os.path.exists(os.path.join(dirName, self.samplesName)):
             datasetExist = True
 
@@ -95,14 +97,14 @@ class DiscriminatorData():
             self.generateNegetiveSamples(self.textData, self.model)
 
             # Saving
-            print('Saving dataset...')
+            print('Saving discriminator dataset...')
             with open(os.path.join(dirName, self.samplesName), 'wb') as handle:
                 data = {
                     'trainingSamples': self.trainingSamples
                 }
                 pickle.dump(data, handle, -1)  # Using the highest protocol available
         else:
-            print('Loading dataset from {}...'.format(dirName))
+            print('Loading discriminator dataset from {}...'.format(dirName))
             with open(os.path.join(dirName, self.samplesName), 'rb') as handle:
                 data = pickle.load(handle)
                 self.trainingSamples = data['trainingSamples']
@@ -180,6 +182,6 @@ if __name__ == "__main__":
                                              arg_params, beam_size,
                                              ctx=devs, dropout=0.)
 
-    data = DiscriminatorData(args, originData, model, forceRegenerate=True)
+    data = DiscriminatorData(args, originData, model, forceRegenerate=False)
     batches = data.getBatches()
     pass
