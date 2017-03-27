@@ -211,4 +211,7 @@ if __name__ == "__main__":
 
     data = DiscriminatorData(args, originData, model, forceRegenerate=False)
     batches = data.getBatches()
+    print batches[0].question
+    print batches[0].answer
+    print batches[0].labels
     pass
