@@ -45,8 +45,8 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
     embedWeight = mx.sym.Variable('embedWeight')
 
     # Logistic Classifier
-    clsWeight = mx.sym.Variable('clsWeight')
-    clsBias = mx.sym.Variable('clsBias')
+    # clsWeight = mx.sym.Variable('clsWeight')
+    # clsBias = mx.sym.Variable('clsBias')
     label = mx.sym.Variable('softmaxLabel')
 
     # -----------Construct Symbols----------- #
@@ -112,8 +112,8 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
     hContentEncoderReshape = mx.sym.Reshape(data=hContentEncoder, shape=(-1, contentHiddenNums))
     pred = mx.sym.FullyConnected(data=hContentEncoderReshape,
                                  num_hidden=2,
-                                 weight=clsWeight,
-                                 bias=clsBias,
+                                 # weight=clsWeight,
+                                 # bias=clsBias,
                                  name='pred')
     binaryClassifier = mx.sym.SoftmaxOutput(data=pred,
                                             label=label,
