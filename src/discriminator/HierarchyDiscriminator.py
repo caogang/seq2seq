@@ -85,7 +85,10 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
     oInputEncoder = inputEncoder[0]
     hInputEncoder = inputEncoder[1]
-    cinputEncoder = inputEncoder[2]
+    cInputEncoder = inputEncoder[2]
+    mx.sym.Select(*[oInputEncoder, inputEncoder[1]], index=1)
+    mx.sym.Select(*[cInputEncoder, inputEncoder[1]], index=1)
+
     oOutputEncoder = outputEncoder[0]
     hOutputEncoder = outputEncoder[1]
     cOutputEncoder = outputEncoder[2]
@@ -107,6 +110,8 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
     oContentEncoder = contentEncoder[0]
     hContentEncoder = contentEncoder[1]
     cContentEncoder = contentEncoder[2]
+    mx.sym.Select(*[oContentEncoder, contentEncoder[1]], index=1)
+    mx.sym.Select(*[cContentEncoder, contentEncoder[1]], index=1)
 
     # 2-SoftmaxOut Symbol
     hContentEncoderReshape = mx.sym.Reshape(data=hContentEncoder, shape=(-1, contentHiddenNums))
@@ -120,35 +125,8 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
                                             name='2-softmax',
                                             use_ignore=True)
 
-    return mx.sym.Group([binaryClassifier,
-                         mx.sym.BlockGrad(data=oInputEncoder),
-                         mx.sym.BlockGrad(data=cinputEncoder),
-                         mx.sym.BlockGrad(data=oOutputEncoder),
-                         mx.sym.BlockGrad(data=cOutputEncoder),
-                         mx.sym.BlockGrad(data=oContentEncoder),
-                         mx.sym.BlockGrad(data=cContentEncoder)])
+    return binaryClassifier
 
-
-class NewAccuracy(mx.metric.EvalMetric):
-    """Calculate accuracy."""
-
-    def __init__(self):
-        super(NewAccuracy, self).__init__('new accuracy')
-
-    def update(self, labels, preds):
-        preds = preds[0]
-        mx.metric.check_label_shapes(labels, preds)
-
-        for label, pred_label in zip(labels, preds):
-            if pred_label.shape != label.shape:
-                pred_label = mx.nd.argmax_channel(pred_label)
-            pred_label = pred_label.asnumpy().astype('int32')
-            label = label.asnumpy().astype('int32')
-
-            mx.metric.check_label_shapes(label, pred_label)
-
-            self.sum_metric += (pred_label.flat == label.flat).sum()
-            self.num_inst += len(pred_label.flat)
 
 class HierarchyDiscriminatorModel:
     def __init__(self, args, text_data):
@@ -218,7 +196,7 @@ class HierarchyDiscriminatorModel:
                                      wd = 0,
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = data_train,
-                  eval_metric = NewAccuracy,
+                  eval_metric = "accuracy",
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 50))
         pass
