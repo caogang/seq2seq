@@ -27,8 +27,8 @@ class DiscriminatorDataIter(mx.io.DataIter):
 
         self.initStates = initStates
         self.initStateArrays = [mx.nd.zeros(x[1]) for x in initStates]
-        self.provide_data = [('inputData', (self.batchSize, inputSeqLen)), ('outputData',(self.batch_size, outputSeqLen))] + initStates
-        self.provide_label = [('softmaxLabel', (self.batch_size, 2))]
+        self.provide_data = [('inputData', (self.batchSize, inputSeqLen)), ('outputData',(self.batchSize, outputSeqLen))] + initStates
+        self.provide_label = [('softmaxLabel', (self.batchSize, 2))]
         self.curr_idx = 0
         self.batches = self.discriminatorData.getBatches()
 
