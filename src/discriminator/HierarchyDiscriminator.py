@@ -148,8 +148,10 @@ class HierarchyDiscriminatorModel:
         self.num_epoch = args.numEpochs
         beam_size = 5  # 10
 
-        self.input_seq_len = args.maxLength
-        self.output_seq_len = args.maxLength + 2
+        args.maxLengthEnco = args.maxLength
+        args.maxLengthDeco = args.maxLength + 2
+        self.input_seq_len = args.maxLengthEnco
+        self.output_seq_len = args.maxLengthDeco
 
         if args.load is None:
             args.load = 50
