@@ -84,14 +84,12 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
                                name='outputEncoder')
 
     oInputEncoder = inputEncoder[0]
-    hInputEncoder = inputEncoder[1]
     cInputEncoder = inputEncoder[2]
-    mx.sym.Select(*[oInputEncoder, inputEncoder[1]], index=1)
-    mx.sym.Select(*[cInputEncoder, inputEncoder[1]], index=1)
+    hInputEncoder = mx.sym.Select(*[oInputEncoder, inputEncoder[1], cInputEncoder], index=1)
 
     oOutputEncoder = outputEncoder[0]
-    hOutputEncoder = outputEncoder[1]
     cOutputEncoder = outputEncoder[2]
+    hOutputEncoder = mx.sym.Select(*[oOutputEncoder, outputEncoder[1], cOutputEncoder], index=1)
 
     # Concat content data from hInputEncoder and hOutputEncoder
     contentData = mx.sym.Concat(hInputEncoder, hOutputEncoder, dim=0)
