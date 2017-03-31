@@ -34,6 +34,16 @@ def getArgs():
     nnArgs.add_argument('--initEmbeddings', action='store_true', help='if present, the program will initialize the embeddings with pre-trained word2vec vectors')
     nnArgs.add_argument('--softmaxSamples', type=int, default=0, help='Number of samples in the sampled softmax loss function. A value of 0 deactivates sampled softmax')
 
+    # Discriminator options
+    disArgs = parser.add_argument_group('Discriminator options')
+    disArgs.add_argument('--inputLayerNums', type=int, default=1)
+    disArgs.add_argument('--inputHiddenNums', type=int, default=512)
+    disArgs.add_argument('--outputLayerNums', type=int, default=1)
+    disArgs.add_argument('--outputHiddenNums', type=int, default=512)
+    disArgs.add_argument('--contentLayerNums', type=int, default=1)
+    disArgs.add_argument('--contentHiddenNums', type=int, default=512)
+
+
     trainingArgs = parser.add_argument_group('Training options')
     trainingArgs.add_argument('--numEpochs', type=int, default=5000, help='maximum number of epochs to run')
     trainingArgs.add_argument('--saveEvery', type=int, default=2000, help='nb of mini-batch step before creating a model checkpoint')

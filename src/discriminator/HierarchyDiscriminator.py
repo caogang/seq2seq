@@ -1,5 +1,14 @@
 import sys
 import mxnet as mx
+sys.path.append('../')
+sys.path.append('./')
+
+from params import getArgs
+from textdata import TextData
+from seq2seq_model import Seq2SeqInferenceModelCornellData
+
+from DiscriminatorDataIter import DiscriminatorDataIter
+from DiscriminatorDataGenerator import DiscriminatorData
 
 
 def hierarchyDiscriminatorSymbol(inputSeqLen, outputSeqLen, contentLen,
@@ -122,6 +131,73 @@ def hierarchyDiscriminatorSymbol(inputSeqLen, outputSeqLen, contentLen,
 
 
 class HierarchyDiscriminatorModel:
-    def __init__(self):
+    def __init__(self, args, text_data):
+        self.args = args
 
+        self.batch_size = args.batchSize
+        self.input_layer_nums = args.inputLayerNums
+        self.output_layer_nums = args.outputLayerNums
+        self.input_hidden_nums = args.inputHiddenNums
+        self.output_hidden_nums = args.outputHiddenNums
+        self.content_layer_nums = args.contentLayerNums
+        self.content_hidden_nums = args.contentHiddenNums
+
+        self.momentum = 0.0
+        self.clip_norm = 1.0
+        self.learning_rate = args.learningRate
+        self.num_epoch = args.numEpochs
+        beam_size = 5  # 10
+
+        self.input_seq_len = args.maxLength
+        self.output_seq_len = args.maxLength + 2
+
+        if args.load is None:
+            args.load = 50
+
+        self.devs = mx.context.gpu(0)
+
+        _, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
+        model = Seq2SeqInferenceModelCornellData(args.maxLength, 1, self.learning_rate,
+                                                 text_data, args.hiddenSize, args.embeddingSize, args.numLayers,
+                                                 arg_params, beam_size,
+                                                 ctx=self.devs, dropout=0.)
+
+        self.data = DiscriminatorData(args, text_data, model, forceRegenerate=False)
         pass
+
+    def train(self):
+        init_h = [('outputEncoderInitH', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitH', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitH', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
+        init_c = [('outputEncoderInitC', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitC', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitC', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
+        init_stats = init_c + init_h
+
+
+        data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.output_seq_len)
+
+        optimizer = mx.optimizer.SGD(momentum = self.momentum,
+                                     learning_rate = self.learning_rate,
+                                     clip_gradient = self.clip_norm)
+
+        model = mx.model.FeedForward(ctx = self.devs,
+                                     symbol = hierarchyDiscriminatorSymbol,
+                                     num_epoch = self.num_epoch,
+                                     learning_rate = self.learning_rate,
+                                     optimizer = optimizer,
+                                     momentum = self.momentum,
+                                     wd = 0,
+                                     initializer = mx.initializer.Uniform(scale=0.07))
+        model.fit(X = data_train,
+                  eval_metric = "accuracy",
+                  batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
+                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 50))
+        pass
+
+
+if __name__ == '__main__':
+    args = getArgs()
+    origin_data = TextData(args)
+    discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
+    discriminator_model.train()
