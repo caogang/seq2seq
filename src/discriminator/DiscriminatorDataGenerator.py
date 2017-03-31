@@ -59,19 +59,20 @@ class DiscriminatorData():
 
         batches = []
 
-        # remove the batch whose length is not equal to batchSize
-        removeLast = False
 
         def genNextSamples():
             """ Generator over the mini-batch training samples
             """
+            # remove the batch whose length is not equal to batchSize
+            removeLast = False
+
             for i in range(0, self.getSampleSize(), self.args.batchSize):
                 if i + self.args.batchSize >= self.getSampleSize():
                     removeLast = True
-                yield self.trainingSamples[i:min(i + self.args.batchSize, self.getSampleSize())]
+                yield self.trainingSamples[i:min(i + self.args.batchSize, self.getSampleSize())], removeLast
 
-        for samples in genNextSamples():
-            if removeLast:
+        for samples, last in genNextSamples():
+            if last:
                 break
             batch = self.__createBatch(samples)
             batches.append(batch)
