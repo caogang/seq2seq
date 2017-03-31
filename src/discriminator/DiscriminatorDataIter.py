@@ -7,7 +7,9 @@ class SimpleDiscriminatorBatch(object):
         self.label = [label]
         self.data_names = data_names
         self.label_names = label_names
+        # Must contain
         self.bucket_key = bucket_key
+        # ------------------
 
     @property
     def provide_data(self):
@@ -24,17 +26,18 @@ class DiscriminatorDataIter(mx.io.DataIter):
         self.batchSize = batchSize
         self.discriminatorData = discriminatorData
 
+        # Must contain
         self.default_bucket_key = inputSeqLen
         self.batch_size = batchSize
-
+        # ----------------
         self.initStates = initStates
         self.initStateArrays = [mx.nd.zeros(x[1]) for x in initStates]
+        # Must contain
         self.provide_data = [('inputData', (self.batchSize, inputSeqLen)), ('outputData',(self.batchSize, outputSeqLen))] + initStates
         self.provide_label = [('softmaxLabel', (self.batchSize,))]
+        # ----------------
         self.curr_idx = 0
         self.batches = self.discriminatorData.getBatches()
-
-        print dict(self.provide_data+self.provide_label)
 
     def __iter__(self):
         return self
