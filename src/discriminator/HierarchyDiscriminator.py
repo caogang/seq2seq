@@ -195,7 +195,7 @@ class HierarchyDiscriminatorModel:
                                      optimizer = optimizer,
                                      momentum = self.momentum,
                                      wd = 0,
-                                     initializer = mx.init.Xavier(factor_type="in", magnitude=2.34))
+                                     initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = data_train,
                   eval_metric = "accuracy",
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
