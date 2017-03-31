@@ -2,6 +2,9 @@ import sys
 import mxnet as mx
 sys.path.append('../')
 sys.path.append('./')
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
+logger = logging.getLogger(__name__)
 
 from params import getArgs
 from textdata import TextData
