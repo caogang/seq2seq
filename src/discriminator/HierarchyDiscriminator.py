@@ -189,7 +189,7 @@ class HierarchyDiscriminatorModel:
                                      clip_gradient = self.clip_norm)
 
         model = mx.model.FeedForward(ctx = self.devs,
-                                     symbol = hierarchyDiscriminatorSymbol,
+                                     symbol = sym_gen,
                                      num_epoch = self.num_epoch,
                                      learning_rate = self.learning_rate,
                                      optimizer = optimizer,
