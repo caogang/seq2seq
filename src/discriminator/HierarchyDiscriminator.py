@@ -21,21 +21,21 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
     inputEncoderInitC = mx.sym.Reshape(data=inputEncoderInitC, shape=(inputLayerNums, -1, inputHiddenNums))
     inputEncoderInitH = mx.sym.Variable('inputEncoderInitH')
     inputEncoderInitH = mx.sym.Reshape(data=inputEncoderInitH, shape=(inputLayerNums, -1, inputHiddenNums))
-    # inputEncoderWeight = mx.sym.Variable('input_encoder_weight')
+    inputEncoderWeight = mx.sym.Variable('input_encoder_weight')
 
     # Output Encoder
     outputEncoderInitC = mx.sym.Variable('outputEncoderInitC')
     outputEncoderInitC = mx.sym.Reshape(data=outputEncoderInitC, shape=(outputLayerNums, -1, outputHiddenNums))
     outputEncoderInitH = mx.sym.Variable('outputEncoderInitH')
     outputEncoderInitH = mx.sym.Reshape(data=outputEncoderInitH, shape=(outputLayerNums, -1, outputHiddenNums))
-    # outputEncoderWeight = mx.sym.Variable('output_encoder_weight')
+    outputEncoderWeight = mx.sym.Variable('output_encoder_weight')
 
     # Content Encoder
     contentEncoderInitC = mx.sym.Variable('contentEncoderInitC')
     contentEncoderInitC = mx.sym.Reshape(data=contentEncoderInitC, shape=(contentLayerNums, -1, contentHiddenNums))
     contentEncoderInitH = mx.sym.Variable('contentEncoderInitH')
     contentEncoderInitH = mx.sym.Reshape(data=contentEncoderInitH, shape=(contentLayerNums, -1, contentHiddenNums))
-    # contentEncoderWeight = mx.sym.Variable('content_encoder_weight')
+    contentEncoderWeight = mx.sym.Variable('content_encoder_weight')
 
     # Embedding Layer
     inputData = mx.sym.Variable('inputData')
@@ -65,7 +65,7 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
     # Encoder Symbol
     inputEncoder = mx.sym.RNN(data=inputEmbed,
-                              # parameters=inputEncoderWeight,
+                              parameters=inputEncoderWeight,
                               state=inputEncoderInitH,
                               state_cell=inputEncoderInitC,
                               state_size=inputHiddenNums,
@@ -74,7 +74,7 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
                               mode='lstm',
                               name='inputEncoder')
     outputEncoder = mx.sym.RNN(data=outputEmbed,
-                               # parameters=outputEncoderWeight,
+                               parameters=outputEncoderWeight,
                                state=outputEncoderInitH,
                                state_cell=outputEncoderInitC,
                                state_size=outputHiddenNums,
@@ -95,7 +95,7 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
     # Content Encoder Symbol
     contentEncoder = mx.sym.RNN(data=contentData,
-                                # parameters=contentEncoderWeight,
+                                parameters=contentEncoderWeight,
                                 state=contentEncoderInitH,
                                 state_cell=contentEncoderInitC,
                                 state_size=contentHiddenNums,
