@@ -2,11 +2,12 @@ import mxnet as mx
 import numpy as np
 
 class SimpleDiscriminatorBatch(object):
-    def __init__(self, data_names, data, label_names, label):
+    def __init__(self, data_names, data, label_names, label, bucket_key):
         self.data = data
         self.label = [label]
         self.data_names = data_names
         self.label_names = label_names
+        self.bucket_key = bucket_key
 
     @property
     def provide_data(self):
@@ -48,10 +49,10 @@ class DiscriminatorDataIter(mx.io.DataIter):
             batch_input_seq = mx.nd.array(batch.question)
             batch_output_seq = mx.nd.array(batch.answer)
             label_all = mx.nd.array(batch.labels)
-            data_all = [batch_input_seq, batch_output_seq] + self.init_state_arrays
+            data_all = [batch_input_seq, batch_output_seq] + self.initStateArrays
             data_names = ["inputData", "outputData"] + init_state_names
             label_names = ["softmaxLabel"]
-            data_batch = SimpleDiscriminatorBatch(data_names, data_all, label_names, label_all)
+            data_batch = SimpleDiscriminatorBatch(data_names, data_all, label_names, label_all, self.default_bucket_key)
             return data_batch
         else:
             raise StopIteration
