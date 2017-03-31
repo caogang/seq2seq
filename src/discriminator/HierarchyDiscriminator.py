@@ -141,7 +141,7 @@ class HierarchyDiscriminatorModel:
         self.content_layer_nums = args.contentLayerNums
         self.content_hidden_nums = args.contentHiddenNums
         self.embedding_size = args.embeddingSize
-        self.vocab_nums = text_data.originData.getVocabularySize()
+        self.vocab_nums = text_data.getVocabularySize()
 
         self.momentum = 0.0
         self.clip_norm = 1.0
