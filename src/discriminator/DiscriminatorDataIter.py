@@ -57,5 +57,5 @@ class DiscriminatorDataIter(mx.io.DataIter):
             raise StopIteration
 
     def reset(self):
-        self.batches = self.textData.getBatches()
+        self.batches = self.discriminatorData.getBatches()
         self.curr_idx = 0
