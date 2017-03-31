@@ -129,6 +129,27 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
                          mx.sym.BlockGrad(data=cContentEncoder)])
 
 
+class NewAccuracy(mx.metric.EvalMetric):
+    """Calculate accuracy."""
+
+    def __init__(self):
+        super(NewAccuracy, self).__init__('new accuracy')
+
+    def update(self, labels, preds):
+        preds = preds[0]
+        mx.metric.check_label_shapes(labels, preds)
+
+        for label, pred_label in zip(labels, preds):
+            if pred_label.shape != label.shape:
+                pred_label = mx.nd.argmax_channel(pred_label)
+            pred_label = pred_label.asnumpy().astype('int32')
+            label = label.asnumpy().astype('int32')
+
+            mx.metric.check_label_shapes(label, pred_label)
+
+            self.sum_metric += (pred_label.flat == label.flat).sum()
+            self.num_inst += len(pred_label.flat)
+
 class HierarchyDiscriminatorModel:
     def __init__(self, args, text_data):
         self.args = args
@@ -197,7 +218,7 @@ class HierarchyDiscriminatorModel:
                                      wd = 0,
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = data_train,
-                  eval_metric = "accuracy",
+                  eval_metric = NewAccuracy,
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 50))
         pass
