@@ -11,8 +11,7 @@ from DiscriminatorDataIter import DiscriminatorDataIter
 from DiscriminatorDataGenerator import DiscriminatorData
 
 
-def hierarchyDiscriminatorSymbol(inputSeqLen, outputSeqLen, contentLen,
-                                 inputHiddenNums, outputHiddenNums, contentHiddenNums,
+def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHiddenNums,
                                  inputLayerNums, outputLayerNums, contentLayerNums,
                                  embedNums, vocabNums, dropout=0.):
     # -----------Build Variables----------- #
@@ -141,6 +140,8 @@ class HierarchyDiscriminatorModel:
         self.output_hidden_nums = args.outputHiddenNums
         self.content_layer_nums = args.contentLayerNums
         self.content_hidden_nums = args.contentHiddenNums
+        self.embedding_size = args.embeddingSize
+        self.vocab_nums = text_data.originData.getVocabularySize()
 
         self.momentum = 0.0
         self.clip_norm = 1.0
@@ -176,6 +177,10 @@ class HierarchyDiscriminatorModel:
                   ('inputEncoderInitC', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
         init_stats = init_c + init_h
 
+        def sym_gen(seq_len):
+            return hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums, self.content_hidden_nums,
+                                 self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
+                                 self.embedding_size, self.vocab_nums, dropout=0.)
 
         data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.output_seq_len)
 
