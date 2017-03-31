@@ -182,7 +182,7 @@ class HierarchyDiscriminatorModel:
                                  self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
                                  self.embedding_size, self.vocab_nums, dropout=0.)
 
-        data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.output_seq_len)
+        data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.input_seq_len)
 
         optimizer = mx.optimizer.SGD(momentum = self.momentum,
                                      learning_rate = self.learning_rate,
