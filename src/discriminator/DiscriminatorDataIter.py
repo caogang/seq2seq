@@ -23,6 +23,8 @@ class DiscriminatorDataIter(mx.io.DataIter):
         self.batchSize = batchSize
         self.discriminatorData = discriminatorData
 
+        self.default_bucket_key = inputSeqLen
+
         self.initStates = initStates
         self.initStateArrays = [mx.nd.zeros(x[1]) for x in initStates]
         self.provide_data = [('inputData', (self.batchSize, inputSeqLen)), ('outputData',(self.batch_size, outputSeqLen))] + initStates
