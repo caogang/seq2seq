@@ -21,32 +21,32 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
     inputEncoderInitC = mx.sym.Reshape(data=inputEncoderInitC, shape=(inputLayerNums, -1, inputHiddenNums))
     inputEncoderInitH = mx.sym.Variable('inputEncoderInitH')
     inputEncoderInitH = mx.sym.Reshape(data=inputEncoderInitH, shape=(inputLayerNums, -1, inputHiddenNums))
-    inputEncoderWeight = mx.sym.Variable('inputEncoderWeight')
+    inputEncoderWeight = mx.sym.Variable('input_encoder_weight')
 
     # Output Encoder
     outputEncoderInitC = mx.sym.Variable('outputEncoderInitC')
     outputEncoderInitC = mx.sym.Reshape(data=outputEncoderInitC, shape=(outputLayerNums, -1, outputHiddenNums))
     outputEncoderInitH = mx.sym.Variable('outputEncoderInitH')
     outputEncoderInitH = mx.sym.Reshape(data=outputEncoderInitH, shape=(outputLayerNums, -1, outputHiddenNums))
-    outputEncoderWeight = mx.sym.Variable('outputEncoderWeight')
+    outputEncoderWeight = mx.sym.Variable('output_encoder_weight')
 
     # Content Encoder
     contentEncoderInitC = mx.sym.Variable('contentEncoderInitC')
     contentEncoderInitC = mx.sym.Reshape(data=contentEncoderInitC, shape=(contentLayerNums, -1, contentHiddenNums))
     contentEncoderInitH = mx.sym.Variable('contentEncoderInitH')
     contentEncoderInitH = mx.sym.Reshape(data=contentEncoderInitH, shape=(contentLayerNums, -1, contentHiddenNums))
-    contentEncoderWeight = mx.sym.Variable('contentEncoderWeight')
+    contentEncoderWeight = mx.sym.Variable('content_encoder_weight')
 
     # Embedding Layer
     inputData = mx.sym.Variable('inputData')
     inputData = mx.sym.transpose(inputData)
     outputData = mx.sym.Variable('outputData')
     outputData = mx.sym.transpose(outputData)
-    embedWeight = mx.sym.Variable('embedWeight')
+    embedWeight = mx.sym.Variable('embed_weight')
 
     # Logistic Classifier
-    # clsWeight = mx.sym.Variable('clsWeight')
-    # clsBias = mx.sym.Variable('clsBias')
+    clsWeight = mx.sym.Variable('cls_weight')
+    clsBias = mx.sym.Variable('cls_bias')
     label = mx.sym.Variable('softmaxLabel')
 
     # -----------Construct Symbols----------- #
@@ -112,8 +112,8 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
     hContentEncoderReshape = mx.sym.Reshape(data=hContentEncoder, shape=(-1, contentHiddenNums))
     pred = mx.sym.FullyConnected(data=hContentEncoderReshape,
                                  num_hidden=2,
-                                 # weight=clsWeight,
-                                 # bias=clsBias,
+                                 weight=clsWeight,
+                                 bias=clsBias,
                                  name='pred')
     binaryClassifier = mx.sym.SoftmaxOutput(data=pred,
                                             label=label,
