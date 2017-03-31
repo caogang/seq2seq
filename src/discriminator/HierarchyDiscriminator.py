@@ -108,10 +108,8 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
                                 name='contentEncoder')
 
     oContentEncoder = contentEncoder[0]
-    hContentEncoder = contentEncoder[1]
     cContentEncoder = contentEncoder[2]
-    mx.sym.Select(*[oContentEncoder, contentEncoder[1]], index=1)
-    mx.sym.Select(*[cContentEncoder, contentEncoder[1]], index=1)
+    hContentEncoder = mx.sym.Select(*[oContentEncoder, contentEncoder[1], cContentEncoder], index=1)
 
     # 2-SoftmaxOut Symbol
     hContentEncoderReshape = mx.sym.Reshape(data=hContentEncoder, shape=(-1, contentHiddenNums))
