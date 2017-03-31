@@ -32,6 +32,8 @@ class DiscriminatorDataIter(mx.io.DataIter):
         self.curr_idx = 0
         self.batches = self.discriminatorData.getBatches()
 
+        print dict(self.provide_data+self.provide_label)
+
     def __iter__(self):
         return self
 
