@@ -1,7 +1,7 @@
 import mxnet as mx
 import numpy as np
 
-class SimpleBatch(object):
+class SimpleDiscriminatorBatch(object):
     def __init__(self, data_names, data, label_names, label):
         self.data = data
         self.label = [label]
@@ -46,7 +46,7 @@ class DiscriminatorDataIter(mx.io.DataIter):
             data_all = [batch_input_seq, batch_output_seq] + self.init_state_arrays
             data_names = ["inputData", "outputData"] + init_state_names
             label_names = ["softmaxLabel"]
-            data_batch = SimpleBatch(data_names, data_all, label_names, label_all)
+            data_batch = SimpleDiscriminatorBatch(data_names, data_all, label_names, label_all)
             return data_batch
         else:
             raise StopIteration
