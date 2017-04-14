@@ -191,10 +191,12 @@ class HierarchyDiscriminatorModel:
             provide_data = [('inputData', (batch_size, self.input_seq_len)),
                                  ('outputData', (batch_size, self.input_seq_len))] + self.init_stats
             provide_label = ['softmaxLabel']
+            print provide_data
+            print provide_label
             self.pretrained_model.bind(data_shapes=provide_data,
-                            label_shapes=provide_label,
+                            #label_shapes=provide_label,
                             for_training=False)
-            self.pretrained_model.init_params(initializer=mx.init.Xavier(factor_type="in", magnitude=2.34))
+            #self.pretrained_model.init_params(initializer=mx.initializer.Uniform(scale=0.07))
             self.pretrained_model.set_params(dis_arg_params)
         pass
 
