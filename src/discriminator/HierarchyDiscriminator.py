@@ -196,7 +196,7 @@ class HierarchyDiscriminatorModel:
             self.pretrained_model.bind(data_shapes=provide_data,
                             #label_shapes=provide_label,
                             for_training=False)
-            #self.pretrained_model.init_params(initializer=mx.initializer.Uniform(scale=0.07))
+            self.pretrained_model.init_params()
             self.pretrained_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params)
         pass
 
