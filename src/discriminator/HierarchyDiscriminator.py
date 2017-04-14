@@ -257,10 +257,10 @@ class HierarchyDiscriminatorModel:
         init_state_names = [x[0] for x in self.init_stats]
         batch_input_seq = mx.nd.array(q_padded)
         batch_output_seq = mx.nd.array(a_padded)
+        print batch_input_seq.shape, batch_output_seq.shape
         data_all = [batch_input_seq, batch_output_seq] + init_state_arrays
         data_names = ["inputData", "outputData"] + init_state_names
-        label_names = ["softmaxLabel"]
-        data_batch = SimpleDiscriminatorBatch(data_names, data_all, label_names, None, self.args.maxLengthEnco)
+        data_batch = SimpleDiscriminatorBatch(data_names, data_all, [], [], self.args.maxLengthEnco)
         return data_batch
 
 
