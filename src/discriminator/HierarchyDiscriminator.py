@@ -192,7 +192,7 @@ class HierarchyDiscriminatorModel:
                                  ('outputData', (batch_size, self.input_seq_len))] + self.init_stats
             provide_label = ['softmaxLabel']
             self.pretrained_model.bind(data_shapes=provide_data,
-                            label_shape=provide_label,
+                            label_shapes=provide_label,
                             for_training=False)
             self.pretrained_model.init_params(initializer=mx.init.Xavier(factor_type="in", magnitude=2.34))
             self.pretrained_model.set_params(dis_arg_params)
