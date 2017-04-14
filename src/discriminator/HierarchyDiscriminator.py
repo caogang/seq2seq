@@ -170,7 +170,13 @@ class HierarchyDiscriminatorModel:
         self.is_train = is_train
         if not is_train:
             _, dis_arg_params, __ = mx.model.load_checkpoint("../snapshots/discriminator", args.loadDis)
-            self.pretrained_model = mx.mod.Module(self.sym_gen, context=self.devs)
+
+            sym = hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
+                                                self.content_hidden_nums,
+                                                self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
+                                                self.embedding_size, self.vocab_nums, dropout=0.)
+
+            self.pretrained_model = mx.mod.Module(sym, context=self.devs)
 
             batch_size = 1
 
@@ -192,11 +198,6 @@ class HierarchyDiscriminatorModel:
             self.pretrained_model.set_params(dis_arg_params)
         pass
 
-    def sym_gen(self, seq_len):
-        return hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums, self.content_hidden_nums,
-                                            self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
-                                            self.embedding_size, self.vocab_nums, dropout=0.)
-
     def train(self):
         init_h = [('outputEncoderInitH', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
                   ('contentEncoderInitH', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
@@ -212,8 +213,14 @@ class HierarchyDiscriminatorModel:
                                      learning_rate = self.learning_rate,
                                      clip_gradient = self.clip_norm)
 
+        def sym_gen(self, seq_len):
+            return hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
+                                                self.content_hidden_nums,
+                                                self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
+                                                self.embedding_size, self.vocab_nums, dropout=0.)
+
         model = mx.model.FeedForward(ctx = self.devs,
-                                     symbol = self.sym_gen,
+                                     symbol = sym_gen,
                                      num_epoch = self.num_epoch,
                                      learning_rate = self.learning_rate,
                                      optimizer = optimizer,
