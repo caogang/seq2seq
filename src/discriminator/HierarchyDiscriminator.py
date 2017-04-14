@@ -169,12 +169,16 @@ class HierarchyDiscriminatorModel:
 
         self.is_train = is_train
         if not is_train:
-            _, dis_arg_params, dis_aux_params = mx.model.load_checkpoint("../snapshots/discriminator", args.loadDis)
+            test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint("../snapshots/discriminator", args.loadDis)
 
             sym = hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
                                                 self.content_hidden_nums,
                                                 self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
                                                 self.embedding_size, self.vocab_nums, dropout=0.)
+
+            print test_sym.list_arguments()
+            print sym.list_arguments()
+            print dis_arg_params
 
             self.pretrained_model = mx.mod.Module(sym, context=self.devs)
 
@@ -196,7 +200,7 @@ class HierarchyDiscriminatorModel:
             self.pretrained_model.bind(data_shapes=provide_data,
                             #label_shapes=provide_label,
                             for_training=False)
-            self.pretrained_model.init_params()
+            # self.pretrained_model.init_params()
             self.pretrained_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params)
         pass
 
