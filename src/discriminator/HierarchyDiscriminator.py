@@ -170,7 +170,7 @@ class HierarchyDiscriminatorModel:
         self.is_train = is_train
         if not is_train:
             _, dis_arg_params, __ = mx.model.load_checkpoint("../snapshots/discriminator", args.loadDis)
-            self.pretrained_model = mx.model.Module(self.sym_gen, self.devs)
+            self.pretrained_model = mx.mod.Module(self.sym_gen, context=self.devs)
 
             batch_size = 1
 
@@ -254,7 +254,7 @@ class HierarchyDiscriminatorModel:
 if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
-    discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
-    discriminator_model.train()
+    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
+    #discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, is_train=False)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
