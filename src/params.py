@@ -42,6 +42,7 @@ def getArgs():
     disArgs.add_argument('--outputHiddenNums', type=int, default=512)
     disArgs.add_argument('--contentLayerNums', type=int, default=1)
     disArgs.add_argument('--contentHiddenNums', type=int, default=512)
+    disArgs.add_argument('--loadDis', type=int, default=50)
 
 
     trainingArgs = parser.add_argument_group('Training options')
