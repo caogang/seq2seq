@@ -176,9 +176,9 @@ class HierarchyDiscriminatorModel:
                                                 self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
                                                 self.embedding_size, self.vocab_nums, dropout=0.)
 
-            print test_sym.list_arguments()
-            print sym.list_arguments()
-            print dis_arg_params
+            # print test_sym.list_arguments()
+            # print sym.list_arguments()
+            # print dis_arg_params
 
             self.pretrained_model = mx.mod.Module(sym, context=self.devs)
 
@@ -242,8 +242,8 @@ class HierarchyDiscriminatorModel:
     def predict(self, q, a):
         batch = self.generate_batch(q, a)
         self.pretrained_model.forward(batch)
-        prob = self.pretrained_model.get_outputs().asnumpy()
-        print prob
+        prob_list = self.pretrained_model.get_outputs()[0].asnumpy()
+        print prob_list
         pass
 
     def generate_batch(self, q, a):
@@ -261,7 +261,7 @@ class HierarchyDiscriminatorModel:
         batch_output_seq = mx.nd.array(a_padded)
         batch_input_seq = batch_input_seq.reshape((1, self.args.maxLengthEnco))
         batch_output_seq = batch_output_seq.reshape((1, self.args.maxLengthEnco))
-        print batch_input_seq.shape, batch_output_seq.shape
+        # print batch_input_seq.shape, batch_output_seq.shape
         data_all = [batch_input_seq, batch_output_seq] + init_state_arrays
         data_names = ["inputData", "outputData"] + init_state_names
         data_batch = SimpleDiscriminatorBatch(data_names, data_all, [], [], self.args.maxLengthEnco)
@@ -275,3 +275,4 @@ if __name__ == '__main__':
     #discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, is_train=False)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
+    discriminator_inference_model.predict("who are you ? <eos>", "i 'm bob . <eos>")
