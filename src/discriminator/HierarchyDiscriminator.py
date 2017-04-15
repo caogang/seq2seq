@@ -241,7 +241,9 @@ class HierarchyDiscriminatorModel:
 
     def predict(self, q, a):
         batch = self.generate_batch(q, a)
-        print self.pretrained_model.forward(batch).asnumpy()
+        self.pretrained_model.forward(batch)
+        prob = self.pretrained_model.get_outputs().asnumpy()
+        print prob
         pass
 
     def generate_batch(self, q, a):
