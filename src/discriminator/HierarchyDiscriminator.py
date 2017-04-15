@@ -257,6 +257,8 @@ class HierarchyDiscriminatorModel:
         init_state_names = [x[0] for x in self.init_stats]
         batch_input_seq = mx.nd.array(q_padded)
         batch_output_seq = mx.nd.array(a_padded)
+        batch_input_seq = batch_input_seq.reshape((1, self.args.maxLengthEnco))
+        batch_output_seq = batch_output_seq.reshape((1, self.args.maxLengthEnco))
         print batch_input_seq.shape, batch_output_seq.shape
         data_all = [batch_input_seq, batch_output_seq] + init_state_arrays
         data_names = ["inputData", "outputData"] + init_state_names
