@@ -235,6 +235,7 @@ class HierarchyDiscriminatorModel:
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = data_train,
                   eval_metric = "accuracy",
+                  num_epoch=101,
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 50))
         pass
@@ -271,8 +272,8 @@ class HierarchyDiscriminatorModel:
 if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
-    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
-    #discriminator_model.train()
+    discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
+    discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, is_train=False)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
     discriminator_inference_model.predict("who are you ? <eos>", "i 'm bob . <eos>")
