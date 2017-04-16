@@ -220,7 +220,7 @@ class HierarchyDiscriminatorModel:
                                      learning_rate = self.learning_rate,
                                      clip_gradient = self.clip_norm)
 
-        def sym_gen(self, seq_len):
+        def sym_gen(seq_len):
             return hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
                                                 self.content_hidden_nums,
                                                 self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
