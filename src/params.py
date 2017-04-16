@@ -44,6 +44,9 @@ def getArgs():
     disArgs.add_argument('--contentHiddenNums', type=int, default=512)
     disArgs.add_argument('--loadDis', type=int, default=50)
 
+    # Discriminator training options
+    disTrainingArgs = parser.add_argument_group('Discriminator training options')
+    disTrainingArgs.add_argument('--numEpochDis', type=int, default=101)
 
     trainingArgs = parser.add_argument_group('Training options')
     trainingArgs.add_argument('--numEpochs', type=int, default=5000, help='maximum number of epochs to run')

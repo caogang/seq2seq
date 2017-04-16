@@ -146,7 +146,8 @@ class HierarchyDiscriminatorModel:
         self.momentum = 0.0
         self.clip_norm = 1.0
         self.learning_rate = args.learningRate
-        self.num_epoch = args.numEpochs
+        self.num_epoch = args.numEpochDis
+        print self.num_epoch
         beam_size = 5  # 10
 
         args.maxLengthEnco = args.maxLength
@@ -235,7 +236,6 @@ class HierarchyDiscriminatorModel:
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = data_train,
                   eval_metric = "accuracy",
-                  num_epoch=101,
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 50))
         pass
