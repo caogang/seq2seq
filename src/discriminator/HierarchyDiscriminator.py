@@ -147,7 +147,6 @@ class HierarchyDiscriminatorModel:
         self.clip_norm = 1.0
         self.learning_rate = args.learningRate
         self.num_epoch = args.numEpochDis
-        print self.num_epoch
         beam_size = 5  # 10
 
         args.maxLengthEnco = args.maxLength
