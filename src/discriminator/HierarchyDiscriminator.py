@@ -115,7 +115,13 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
     # 2-SoftmaxOut Symbol
     hContentEncoderReshape = mx.sym.Reshape(data=hContentEncoder, shape=(-1, contentHiddenNums))
-    pred = mx.sym.FullyConnected(data=hContentEncoderReshape,
+    fc1 = mx.sym.FullyConnected(data=hContentEncoderReshape,
+                                num_hidden=1024,
+                                name='fc1')
+    fc2 = mx.sym.FullyConnected(data=fc1,
+                                num_hidden=1024,
+                                name='fc2')
+    pred = mx.sym.FullyConnected(data=fc2,
                                  num_hidden=2,
                                  # weight=clsWeight,
                                  # bias=clsBias,
