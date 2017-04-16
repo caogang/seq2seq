@@ -236,7 +236,7 @@ class HierarchyDiscriminatorModel:
         model.fit(X = data_train,
                   eval_metric = "accuracy",
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
-                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 50))
+                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 100))
         pass
 
     def predict(self, q, a):
@@ -271,8 +271,14 @@ class HierarchyDiscriminatorModel:
 if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
-    discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
-    discriminator_model.train()
+    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
+    #discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, is_train=False)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
+    discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
+    discriminator_inference_model.predict("hi . <eos>", "i 'm fine . <eos>")
+    discriminator_inference_model.predict("hi . <eos>", "what are you doing ? <eos>")
     discriminator_inference_model.predict("who are you ? <eos>", "i 'm bob . <eos>")
+    discriminator_inference_model.predict("where is your pen ? <eos>", "i 'm bob . <eos>")
+    discriminator_inference_model.predict("where is your pen ? <eos>", "in my bag . <eos>")
+    discriminator_inference_model.predict("i like you . <eos>", "i like you too . <eos>")
