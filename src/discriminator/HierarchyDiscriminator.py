@@ -245,9 +245,15 @@ class HierarchyDiscriminatorModel:
         self.pretrained_model.forward(batch)
         prob_list = self.pretrained_model.get_outputs()[0].asnumpy()
         print prob_list
-        pass
+        return prob_list
 
-    def generate_batch(self, q, a):
+    def train_one_batch(self, batch_tuple):
+        batch = self.generate_batch(batch_tuple[0],
+                                    batch_tuple[1],
+                                    label=batch_tuple[2],
+                                    is_train=True)
+
+    def generate_batch(self, q, a, label=None, is_train=False):
         q = q.rstrip('<eos>')
         a = a.rstrip('<eos>')
         q_id = self.text_data.sentence2id(q)
