@@ -147,6 +147,7 @@ class HierarchyDiscriminatorModel:
         self.clip_norm = 1.0
         self.learning_rate = args.learningRate
         self.num_epoch = args.numEpochDis
+        self.prefix = prefix
         beam_size = 5  # 10
 
         args.maxLengthEnco = args.maxLength
@@ -240,7 +241,7 @@ class HierarchyDiscriminatorModel:
         self.train_model.fit(X = data_train,
                              eval_metric="accuracy",
                              batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
-                             epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator-new-optimizer",
+                             epoch_end_callback=mx.callback.do_checkpoint(self.prefix,
                                                                           period=100))
 
     def predict(self, q, a):
@@ -308,7 +309,7 @@ class HierarchyDiscriminatorModel:
 if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
-    prefix = "../snapshots/discriminator"
+    prefix = "../snapshots/discriminator-new-optimizer"
     #discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix)
     #discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, prefix)
