@@ -244,7 +244,8 @@ class HierarchyDiscriminatorModel:
                                                                           period=100))
 
     def predict(self, q, a):
-        (dis_arg_params, dis_aux_params) = self.train_model.get_params()
+        params = self.train_model.get_params()
+        dis_arg_params, dis_aux_params = params['arg_params'], params['aux_params']
         self.pretrained_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
 
         batch = self.generate_batch(q, a)
@@ -307,9 +308,9 @@ class HierarchyDiscriminatorModel:
 if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
-    discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
-    discriminator_model.train()
-    discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, is_train=False)
+    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
+    #discriminator_model.train()
+    discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "i 'm fine . <eos>")
