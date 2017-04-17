@@ -272,8 +272,8 @@ class HierarchyDiscriminatorModel:
 if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
-    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
-    #discriminator_model.train()
+    discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
+    discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, is_train=False)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
