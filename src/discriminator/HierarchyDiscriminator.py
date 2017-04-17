@@ -321,3 +321,6 @@ if __name__ == '__main__':
     discriminator_inference_model.predict("where is your pen ? <eos>", "i 'm bob . <eos>")
     discriminator_inference_model.predict("where is your pen ? <eos>", "in my bag . <eos>")
     discriminator_inference_model.predict("i like you . <eos>", "i like you too . <eos>")
+    discriminator_inference_model.train_one_batch(("hi . <eos>", "hello . <eos>", 1))
+    discriminator_inference_model.train_one_batch(("hi . <eos>", "fuck you . <eos>", 0))
+
