@@ -129,7 +129,7 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
 
 class HierarchyDiscriminatorModel:
-    def __init__(self, args, text_data, is_train=True):
+    def __init__(self, args, text_data, is_train=True, prefix="../snapshots/discriminator"):
         self.args = args
 
         self.batch_size = args.batchSize
@@ -169,7 +169,7 @@ class HierarchyDiscriminatorModel:
 
         self.train_model = self.generate_train_model()
         self.predict_model = self.generate_predict_model()
-        self.load_check_points()
+        self.load_check_points(prefix)
 
         self.is_train = is_train
         pass
@@ -263,7 +263,7 @@ class HierarchyDiscriminatorModel:
         self.train_model.backward()
         self.train_model.update()
 
-    def load_check_points(self, prefix="../snapshots/discriminator"):
+    def load_check_points(self, prefix):
         test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, args.loadDis)
         self.train_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params)
 
@@ -308,9 +308,10 @@ class HierarchyDiscriminatorModel:
 if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
-    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data)
+    prefix = "../snapshots/discriminator"
+    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix)
     #discriminator_model.train()
-    discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data)
+    discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, prefix)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "i 'm fine . <eos>")
