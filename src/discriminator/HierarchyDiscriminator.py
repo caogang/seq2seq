@@ -167,54 +167,46 @@ class HierarchyDiscriminatorModel:
 
         self.data = DiscriminatorData(args, text_data, model, forceRegenerate=False)
 
+        self.train_model = self.generate_train_model()
+        self.predict_model = self.generate_predict_model()
+        self.load_check_points()
+
         self.is_train = is_train
-        if not is_train:
-            test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint("../snapshots/discriminator", args.loadDis)
-
-            sym = hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
-                                                self.content_hidden_nums,
-                                                self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
-                                                self.embedding_size, self.vocab_nums, dropout=0.)
-
-            # print test_sym.list_arguments()
-            # print sym.list_arguments()
-            # print dis_arg_params
-
-            self.pretrained_model = mx.mod.Module(sym, context=self.devs)
-
-            batch_size = 1
-
-            init_h = [('outputEncoderInitH', (batch_size, self.output_layer_nums, self.output_hidden_nums)),
-                      ('contentEncoderInitH', (batch_size, self.content_layer_nums, self.content_hidden_nums)),
-                      ('inputEncoderInitH', (batch_size, self.input_layer_nums, self.input_hidden_nums))]
-            init_c = [('outputEncoderInitC', (batch_size, self.output_layer_nums, self.output_hidden_nums)),
-                      ('contentEncoderInitC', (batch_size, self.content_layer_nums, self.content_hidden_nums)),
-                      ('inputEncoderInitC', (batch_size, self.input_layer_nums, self.input_hidden_nums))]
-            self.init_stats = init_c + init_h
-
-            provide_data = [('inputData', (batch_size, self.input_seq_len)),
-                                 ('outputData', (batch_size, self.input_seq_len))] + self.init_stats
-            provide_label = ['softmaxLabel']
-            # print provide_data
-            # print provide_label
-            self.pretrained_model.bind(data_shapes=provide_data,
-                            #label_shapes=provide_label,
-                            for_training=False)
-            # self.pretrained_model.init_params()
-            self.pretrained_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
         pass
 
-    def train(self):
-        init_h = [('outputEncoderInitH', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
-                  ('contentEncoderInitH', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
-                  ('inputEncoderInitH', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
-        init_c = [('outputEncoderInitC', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
-                  ('contentEncoderInitC', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
-                  ('inputEncoderInitC', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
+    def generate_predict_model(self):
+
+        sym = hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
+                                           self.content_hidden_nums,
+                                           self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
+                                           self.embedding_size, self.vocab_nums, dropout=0.)
+
+        # print test_sym.list_arguments()
+        # print sym.list_arguments()
+        # print dis_arg_params
+
+        pretrained_model = mx.mod.Module(sym, context=self.devs)
+
+        batch_size = 1
+
+        init_h = [('outputEncoderInitH', (batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitH', (batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitH', (batch_size, self.input_layer_nums, self.input_hidden_nums))]
+        init_c = [('outputEncoderInitC', (batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitC', (batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitC', (batch_size, self.input_layer_nums, self.input_hidden_nums))]
         init_stats = init_c + init_h
 
-        data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.input_seq_len)
+        provide_data = [('inputData', (batch_size, self.input_seq_len)),
+                        ('outputData', (batch_size, self.input_seq_len))] + init_stats
+        # print provide_data
+        # print provide_label
+        pretrained_model.bind(data_shapes=provide_data,
+                              for_training=False)
 
+        return pretrained_model
+
+    def generate_train_model(self):
         # optimizer = mx.optimizer.SGD(momentum = self.momentum,
         #                              learning_rate = self.learning_rate,
         #                              clip_gradient = self.clip_norm)
@@ -234,13 +226,27 @@ class HierarchyDiscriminatorModel:
                                      momentum = self.momentum,
                                      wd = 0,
                                      initializer = mx.initializer.Uniform(scale=0.07))
-        model.fit(X = data_train,
-                  eval_metric = "accuracy",
-                  batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
-                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator-new-optimizer", period = 100))
-        pass
+        return model
+
+    def train(self):
+        init_h = [('outputEncoderInitH', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitH', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitH', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
+        init_c = [('outputEncoderInitC', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitC', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitC', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
+        init_stats = init_c + init_h
+        data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.input_seq_len)
+        self.train_model.fit(X = data_train,
+                             eval_metric="accuracy",
+                             batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
+                             epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator-new-optimizer",
+                                                                          period=100))
 
     def predict(self, q, a):
+        dis_arg_params, dis_aux_params = self.train_model.get_params()
+        self.pretrained_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
+
         batch = self.generate_batch(q, a)
         self.pretrained_model.forward(batch)
         prob_list = self.pretrained_model.get_outputs()[0].asnumpy()
@@ -252,6 +258,13 @@ class HierarchyDiscriminatorModel:
                                     batch_tuple[1],
                                     label=batch_tuple[2],
                                     is_train=True)
+        self.train_model.forward(batch)
+        self.train_model.backward()
+        self.train_model.update()
+
+    def load_check_points(self, prefix="../snapshots/discriminator"):
+        test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, args.loadDis)
+        self.train_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
 
     def generate_batch(self, q, a, label=None, is_train=False):
         q = q.rstrip('<eos>')
@@ -262,8 +275,18 @@ class HierarchyDiscriminatorModel:
         q_padded = [self.text_data.padToken] * (self.args.maxLengthEnco - len(q_id)) + q_id  # Left padding for the input
         a_padded = [self.text_data.padToken] * (self.args.maxLengthEnco - len(a_id)) + a_id
 
-        init_state_arrays = [mx.nd.zeros(x[1]) for x in self.init_stats]
-        init_state_names = [x[0] for x in self.init_stats]
+        batch_size = 1
+
+        init_h = [('outputEncoderInitH', (batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitH', (batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitH', (batch_size, self.input_layer_nums, self.input_hidden_nums))]
+        init_c = [('outputEncoderInitC', (batch_size, self.output_layer_nums, self.output_hidden_nums)),
+                  ('contentEncoderInitC', (batch_size, self.content_layer_nums, self.content_hidden_nums)),
+                  ('inputEncoderInitC', (batch_size, self.input_layer_nums, self.input_hidden_nums))]
+        init_stats = init_c + init_h
+
+        init_state_arrays = [mx.nd.zeros(x[1]) for x in init_stats]
+        init_state_names = [x[0] for x in init_stats]
         batch_input_seq = mx.nd.array(q_padded)
         batch_output_seq = mx.nd.array(a_padded)
         batch_input_seq = batch_input_seq.reshape((1, self.args.maxLengthEnco))
@@ -271,8 +294,14 @@ class HierarchyDiscriminatorModel:
         # print batch_input_seq.shape, batch_output_seq.shape
         data_all = [batch_input_seq, batch_output_seq] + init_state_arrays
         data_names = ["inputData", "outputData"] + init_state_names
-        data_batch = SimpleDiscriminatorBatch(data_names, data_all, [], [], self.args.maxLengthEnco)
-        return data_batch
+        if is_train and label is not None:
+            label_names = ["softmaxLabel"]
+            label_all = mx.nd.array(label)
+            data_batch = SimpleDiscriminatorBatch(data_names, data_all, label_names, label_all, self.args.maxLengthEnco)
+            return data_batch
+        else:
+            data_batch = SimpleDiscriminatorBatch(data_names, data_all, [], [], self.args.maxLengthEnco)
+            return data_batch
 
 
 if __name__ == '__main__':
