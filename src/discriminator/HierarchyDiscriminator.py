@@ -115,13 +115,7 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
     # 2-SoftmaxOut Symbol
     hContentEncoderReshape = mx.sym.Reshape(data=hContentEncoder, shape=(-1, contentHiddenNums))
-    fc1 = mx.sym.FullyConnected(data=hContentEncoderReshape,
-                                num_hidden=1024,
-                                name='fc1')
-    fc2 = mx.sym.FullyConnected(data=fc1,
-                                num_hidden=1024,
-                                name='fc2')
-    pred = mx.sym.FullyConnected(data=fc2,
+    pred = mx.sym.FullyConnected(data=hContentEncoderReshape,
                                  num_hidden=2,
                                  # weight=clsWeight,
                                  # bias=clsBias,
@@ -221,9 +215,10 @@ class HierarchyDiscriminatorModel:
 
         data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.input_seq_len)
 
-        optimizer = mx.optimizer.SGD(momentum = self.momentum,
-                                     learning_rate = self.learning_rate,
-                                     clip_gradient = self.clip_norm)
+        # optimizer = mx.optimizer.SGD(momentum = self.momentum,
+        #                              learning_rate = self.learning_rate,
+        #                              clip_gradient = self.clip_norm)
+        optimizer = mx.optimizer.Adam(learning_rate=1e-4, beta1=0.5, beta2=0.9)
 
         def sym_gen(seq_len):
             return hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
@@ -242,7 +237,7 @@ class HierarchyDiscriminatorModel:
         model.fit(X = data_train,
                   eval_metric = "accuracy",
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
-                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator-two-layer", period = 100))
+                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator-new-optimizer", period = 100))
         pass
 
     def predict(self, q, a):
