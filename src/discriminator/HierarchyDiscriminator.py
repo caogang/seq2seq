@@ -246,11 +246,11 @@ class HierarchyDiscriminatorModel:
     def predict(self, q, a):
         params = self.train_model.get_params()
         dis_arg_params, dis_aux_params = params['arg_params'], params['aux_params']
-        self.pretrained_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
+        self.predict_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
 
         batch = self.generate_batch(q, a)
-        self.pretrained_model.forward(batch)
-        prob_list = self.pretrained_model.get_outputs()[0].asnumpy()
+        self.predict_model.forward(batch)
+        prob_list = self.predict_model.get_outputs()[0].asnumpy()
         print prob_list
         return prob_list
 
