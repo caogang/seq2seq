@@ -312,7 +312,7 @@ if __name__ == '__main__':
     prefix = "../snapshots/discriminator-new-optimizer"
     #discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix)
     #discriminator_model.train()
-    discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, prefix)
+    discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "i 'm fine . <eos>")
