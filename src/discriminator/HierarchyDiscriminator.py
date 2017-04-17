@@ -264,7 +264,7 @@ class HierarchyDiscriminatorModel:
 
     def load_check_points(self, prefix="../snapshots/discriminator"):
         test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, args.loadDis)
-        self.train_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
+        self.train_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params)
 
     def generate_batch(self, q, a, label=None, is_train=False):
         q = q.rstrip('<eos>')
