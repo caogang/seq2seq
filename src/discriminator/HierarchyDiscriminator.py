@@ -160,7 +160,7 @@ class HierarchyDiscriminatorModel:
         self.input_seq_len = args.maxLengthEnco
         self.output_seq_len = args.maxLengthDeco
 
-        self.devs = mx.context.gpu(0)
+        self.devs = mx.context.gpu(1)#0)
 
         if args.load is None:
             args.load = 50
@@ -242,7 +242,7 @@ class HierarchyDiscriminatorModel:
         model.fit(X = data_train,
                   eval_metric = "accuracy",
                   batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
-                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator", period = 100))
+                  epoch_end_callback=mx.callback.do_checkpoint("../snapshots/discriminator-two-layer", period = 100))
         pass
 
     def predict(self, q, a):
