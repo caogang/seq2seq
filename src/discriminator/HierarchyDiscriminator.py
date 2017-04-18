@@ -255,9 +255,9 @@ class HierarchyDiscriminatorModel:
                                     batch_tuple[1],
                                     label=batch_tuple[2],
                                     is_train=True)
-        self.train_model.forward(batch)
-        self.train_model.backward()
-        self.train_model.update()
+        self.train_one_batch_model.forward(batch)
+        self.train_one_batch_model.backward()
+        self.train_one_batch_model.update()
 
         self.dis_arg_params, self.dis_aux_params = self.train_one_batch_model.get_params()
 
