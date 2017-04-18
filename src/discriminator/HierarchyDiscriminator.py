@@ -298,7 +298,7 @@ class HierarchyDiscriminatorModel:
         data_names = ["inputData", "outputData"] + init_state_names
         if is_train and label is not None:
             label_names = ["softmaxLabel"]
-            label_all = mx.nd.array(label)
+            label_all = mx.nd.array([label])
             data_batch = SimpleDiscriminatorBatch(data_names, data_all, label_names, label_all, self.args.maxLengthEnco)
             return data_batch
         else:
