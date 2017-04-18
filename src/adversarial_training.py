@@ -50,9 +50,9 @@ if __name__ == '__main__':
             a = sample_qa[1]
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
             positive_batch = (q, a, 1)
-            negetive_batch = (q, a_machine, 0)
+            negative_batch = (q, a_machine, 0)
             discriminator_model.train_one_batch(positive_batch)
-            discriminator_model.train_one_batch(negetive_batch)
+            discriminator_model.train_one_batch(negative_batch)
         for g in xrange(g_steps):
             sample_qa = textData.get_random_qapair()
             q = sample_qa[0]
