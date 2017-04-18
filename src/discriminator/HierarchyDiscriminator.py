@@ -232,7 +232,8 @@ class HierarchyDiscriminatorModel:
                   ('inputEncoderInitC', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
         init_stats = init_c + init_h
         data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.input_seq_len)
-        self.train_model.fit(X = data_train,
+        self.train_model.fit(data_train,
+                             num_epoch=self.num_epoch,
                              eval_metric="accuracy",
                              batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
                              epoch_end_callback=mx.callback.do_checkpoint(self.prefix,
