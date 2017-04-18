@@ -41,7 +41,7 @@ def seq2seq_lstm_unroll(seq_len, num_hidden, num_embed, num_vocab, num_layer, dr
 
     o = output[0]
     #o = mx.sym.Stats(data=o, source_name='outputs_stats')
-    h = mx.sym.Select(*[o, output[1]], index=1)
+    h = output[1]#mx.sym.Select(*[o, output[1]], index=1)
     c = output[2]
     #h = mx.sym.Stats(data=h, source_name='hidden_stats')
     #c = mx.sym.Stats(data=c, source_name='cell_stats')
@@ -64,7 +64,9 @@ def seq2seq_lstm_unroll(seq_len, num_hidden, num_embed, num_vocab, num_layer, dr
 
     sm = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax', use_ignore = True)
     sm_reshape = mx.sym.Reshape(data=sm, shape=(seq_len + 2, -1, num_vocab))
-    return mx.sym.SwapAxis(data=sm_reshape, dim1=0, dim2=1)
+    return mx.sym.Group([mx.sym.SwapAxis(data=sm_reshape, dim1=0, dim2=1),
+                          mx.sym.BlockGrad(data=o),
+                          mx.sym.BlockGrad(data=c)])
 
 
 def seq2seq_lstm_unroll_without_softmax(seq_len, num_hidden, num_embed, num_vocab, num_layer, dropout=0.):
@@ -101,7 +103,7 @@ def seq2seq_lstm_unroll_without_softmax(seq_len, num_hidden, num_embed, num_voca
 
     o = output[0]
     # o = mx.sym.Stats(data=o, source_name='outputs_stats')
-    h = mx.sym.Select(*[o, output[1]], index=1)
+    h = output[1]#mx.sym.Select(*[o, output[1]], index=1)
     c = output[2]
     # h = mx.sym.Stats(data=h, source_name='hidden_stats')
     # c = mx.sym.Stats(data=c, source_name='cell_stats')
@@ -126,7 +128,9 @@ def seq2seq_lstm_unroll_without_softmax(seq_len, num_hidden, num_embed, num_voca
     # sm = mx.sym.SoftmaxOutput(data=pred, label=label, name='softmax', use_ignore = True)
     # sm_reshape = mx.sym.Reshape(data=sm, shape=(seq_len, -1, num_vocab))
     # return mx.sym.SwapAxis(data=sm_reshape, dim1=0, dim2=1)
-    return pred
+    return mx.sym.Group([pred,
+                          mx.sym.BlockGrad(data=o),
+                          mx.sym.BlockGrad(data=c)])
 
 def seq2seq_lstm_softmax_stage():
     label = mx.sym.Variable('softmax_label')

@@ -10,6 +10,24 @@ logger = logging.getLogger(__name__)
 from textdata import TextData, CornellDataIter
 from params import getArgs
 
+class GroupAccuracy(mx.metric.EvalMetric):
+    """Calculate group accuracy."""
+
+    def __init__(self):
+        super(GroupAccuracy, self).__init__('group accuracy')
+
+    def update(self, labels, preds):
+        preds = [preds[0]]
+        mx.metric.check_label_shapes(labels, preds)
+        for label, pred_label in zip(labels, preds):
+            if pred_label.shape != label.shape:
+                pred_label = mx.ndarray.argmax_channel(pred_label)
+            pred_label = pred_label.asnumpy().astype('int32')
+            label = label.asnumpy().astype('int32')
+            #print label, pred_label
+            mx.metric.check_label_shapes(label, pred_label)
+            self.sum_metric += (pred_label.flat == label.flat).sum()
+            self.num_inst += len(pred_label.flat)
 
 if __name__ == "__main__":
     #args = parser.parse_args()
@@ -28,7 +46,7 @@ if __name__ == "__main__":
     args.maxLengthEnco = args.maxLength
     args.maxLengthDeco = args.maxLength + 2
 
-    devs = mx.context.gpu(0)
+    devs = mx.context.gpu(1)
 
     # Put needed training stage here
     training_stage = [1]
@@ -64,6 +82,6 @@ if __name__ == "__main__":
                                      wd = 0,
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = forward_data_train,
-                  eval_metric = "accuracy",
+                  eval_metric = GroupAccuracy(),
                   batch_end_callback=mx.callback.Speedometer(batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 50))
