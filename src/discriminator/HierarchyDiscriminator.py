@@ -168,14 +168,15 @@ class HierarchyDiscriminatorModel:
 
         self.data = DiscriminatorData(args, text_data, model, forceRegenerate=False)
 
-        self.train_model = self.generate_train_model()
-        self.predict_model = self.generate_predict_model()
-        self.load_check_points(prefix)
+        self.dis_arg_params, self.dis_aux_params = self.load_check_points(prefix)
+        self.train_model = self.generate_model(self.batch_size, self.dis_arg_params, self.dis_aux_params)
+        self.train_one_batch_model = self.generate_model(1, self.dis_arg_params, self.dis_aux_params)
+        self.predict_model = self.generate_model(1, self.dis_arg_params, self.dis_aux_params, is_train=False)
 
         self.is_train = is_train
         pass
 
-    def generate_predict_model(self):
+    def generate_model(self, batch_size, arg_params, aux_params, is_train=True):
 
         sym = hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
                                            self.content_hidden_nums,
@@ -186,9 +187,7 @@ class HierarchyDiscriminatorModel:
         # print sym.list_arguments()
         # print dis_arg_params
 
-        pretrained_model = mx.mod.Module(sym, context=self.devs)
-
-        batch_size = 1
+        model = mx.mod.Module(sym, context=self.devs)
 
         init_h = [('outputEncoderInitH', (batch_size, self.output_layer_nums, self.output_hidden_nums)),
                   ('contentEncoderInitH', (batch_size, self.content_layer_nums, self.content_hidden_nums)),
@@ -202,34 +201,29 @@ class HierarchyDiscriminatorModel:
                         ('outputData', (batch_size, self.input_seq_len))] + init_stats
         # print provide_data
         # print provide_label
-        pretrained_model.bind(data_shapes=provide_data,
-                              for_training=False)
+        if is_train:
+            provide_label = [('softmaxLabel', (batch_size,))]
+            model.bind(data_shapes=provide_data,
+                       label_shapes=provide_label,
+                       for_training=True)
+            model.set_params(arg_params=arg_params, aux_params=aux_params, allow_missing=True)
+            model.init_optimizer(
+                    optimizer='adam',
+                    optimizer_params={
+                        'learning_rate': 1e-4,
+                        'beta1': 0.5,
+                        'beta2': 0.9
+                    })
+        else:
+            model.bind(data_shapes=provide_data,
+                       for_training=False)
+            model.set_params(arg_params=arg_params, aux_params=aux_params, allow_missing=True)
 
-        return pretrained_model
-
-    def generate_train_model(self):
-        # optimizer = mx.optimizer.SGD(momentum = self.momentum,
-        #                              learning_rate = self.learning_rate,
-        #                              clip_gradient = self.clip_norm)
-        optimizer = mx.optimizer.Adam(learning_rate=1e-4, beta1=0.5, beta2=0.9)
-
-        def sym_gen(seq_len):
-            return hierarchyDiscriminatorSymbol(self.input_hidden_nums, self.output_hidden_nums,
-                                                self.content_hidden_nums,
-                                                self.input_layer_nums, self.output_layer_nums, self.content_layer_nums,
-                                                self.embedding_size, self.vocab_nums, dropout=0.)
-
-        model = mx.model.FeedForward(ctx = self.devs,
-                                     symbol = sym_gen,
-                                     num_epoch = self.num_epoch,
-                                     learning_rate = self.learning_rate,
-                                     optimizer = optimizer,
-                                     momentum = self.momentum,
-                                     wd = 0,
-                                     initializer = mx.initializer.Uniform(scale=0.07))
         return model
 
     def train(self):
+        self.train_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
+
         init_h = [('outputEncoderInitH', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
                   ('contentEncoderInitH', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
                   ('inputEncoderInitH', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
@@ -243,11 +237,10 @@ class HierarchyDiscriminatorModel:
                              batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
                              epoch_end_callback=mx.callback.do_checkpoint(self.prefix,
                                                                           period=100))
+        self.dis_arg_params, self.dis_aux_params = self.train_model.get_params()
 
     def predict(self, q, a):
-        params = self.train_model.get_params()
-        dis_arg_params, dis_aux_params = params['arg_params'], params['aux_params']
-        self.predict_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params, allow_missing=True)
+        self.predict_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
 
         batch = self.generate_batch(q, a)
         self.predict_model.forward(batch)
@@ -256,6 +249,8 @@ class HierarchyDiscriminatorModel:
         return prob_list
 
     def train_one_batch(self, batch_tuple):
+        self.train_one_batch_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
+
         batch = self.generate_batch(batch_tuple[0],
                                     batch_tuple[1],
                                     label=batch_tuple[2],
@@ -264,9 +259,11 @@ class HierarchyDiscriminatorModel:
         self.train_model.backward()
         self.train_model.update()
 
+        self.dis_arg_params, self.dis_aux_params = self.train_one_batch_model.get_params()
+
     def load_check_points(self, prefix):
         test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, args.loadDis)
-        self.train_model.set_params(arg_params=dis_arg_params, aux_params=dis_aux_params)
+        return dis_arg_params, dis_aux_params
 
     def generate_batch(self, q, a, label=None, is_train=False):
         q = q.rstrip('<eos>')
