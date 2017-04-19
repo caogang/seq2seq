@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 from textdata import TextData, CornellDataIter
 from params import getArgs
 
+
 class GroupAccuracy(mx.metric.EvalMetric):
     """Calculate group accuracy."""
 
@@ -21,13 +22,21 @@ class GroupAccuracy(mx.metric.EvalMetric):
         mx.metric.check_label_shapes(labels, preds)
         for label, pred_label in zip(labels, preds):
             if pred_label.shape != label.shape:
-                pred_label = mx.ndarray.argmax_channel(pred_label)
+                pred_label = self.ndarray_argmax(pred_label)
             pred_label = pred_label.asnumpy().astype('int32')
             label = label.asnumpy().astype('int32')
             #print label, pred_label
             mx.metric.check_label_shapes(label, pred_label)
             self.sum_metric += (pred_label.flat == label.flat).sum()
             self.num_inst += len(pred_label.flat)
+
+    def ndarray_argmax(pred):  # argmax the last dim
+        if len(pred.shape) > 2:
+            flatten_shape = (np.prod(pred.shape[0:-1]), pred.shape[-1])
+            pred_label = mx.ndarray.argmax_channel(pred.reshape(flatten_shape))
+            return pred_label.reshape(pred.shape[0:-1])
+        else:
+            return mx.ndarray.argmax_channel(pred)
 
 if __name__ == "__main__":
     #args = parser.parse_args()
