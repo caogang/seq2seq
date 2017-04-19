@@ -1,4 +1,5 @@
 import mxnet as mx
+import re
 from seq2seq_model import Seq2SeqInferenceModelCornellData
 from params import getArgs
 from textdata import TextData
@@ -45,6 +46,8 @@ if __name__ == '__main__':
     policy_gradient_model = PolicyGradientUpdateModel(args.maxLength, batch_size, learning_rate,
                                                       textData, num_hidden, num_embed, num_layer, arg_params)
 
+    pattern = re.compile(r'<.*>')
+
     for i in xrange(1, iterations + 1):
         for d in xrange(d_steps):
             sample_qa = textData.get_random_qapair()
@@ -54,7 +57,9 @@ if __name__ == '__main__':
             positive_batch = (q, a, 1)
             negative_batch = (q, a_machine, 0)
 
-            while len(a_machine.split(' ')) > args.maxLength + 1:
+            a_machine_list = a_machine.split(' ')
+            extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
+            while extra_num != 0 or len(a_machine_list) > args.maxLength + 1:
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
                 a = sample_qa[1]
@@ -71,7 +76,9 @@ if __name__ == '__main__':
             a = sample_qa[1]
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
 
-            while len(a_machine.split(' ')) > args.maxLength + 1:
+            a_machine_list = a_machine.split(' ')
+            extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
+            while extra_num != 0 or len(a_machine_list) > args.maxLength + 1:
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
                 a = sample_qa[1]
