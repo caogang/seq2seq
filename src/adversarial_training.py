@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
             a_machine_list = a_machine.split(' ')
             extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
-            while extra_num != 0 or len(a_machine_list) > args.maxLength + 1:
+            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1:
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
                 a = sample_qa[1]
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
             a_machine_list = a_machine.split(' ')
             extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
-            while extra_num != 0 or len(a_machine_list) > args.maxLength + 1:
+            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1:
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
                 a = sample_qa[1]
