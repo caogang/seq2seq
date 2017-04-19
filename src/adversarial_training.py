@@ -28,9 +28,10 @@ if __name__ == '__main__':
 
     devs = mx.context.gpu(0)
 
-    iterations = 5000
-    d_steps = 5
-    g_steps = 1
+    iterations = args.epochRL
+    d_steps = args.dStepsRL
+    g_steps = args.gStepsRL
+    save_epoch = args.saveEveryRL
 
     _, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
     inference_model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
@@ -44,7 +45,7 @@ if __name__ == '__main__':
     policy_gradient_model = PolicyGradientUpdateModel(args.maxLength, batch_size, learning_rate,
                                                       textData, num_hidden, num_embed, num_layer, arg_params)
 
-    for i in xrange(iterations):
+    for i in xrange(1, iterations + 1):
         inference_model.load_params(policy_gradient_model.get_weights())
         for d in xrange(d_steps):
             sample_qa = textData.get_random_qapair()
@@ -75,4 +76,6 @@ if __name__ == '__main__':
             gradient = mx.nd.array(pred_grad, ctx=devs)
             policy_gradient_model.backward(gradient)
             policy_gradient_model.update_params()
-    policy_gradient_model.save_weights('../snapshots/policy_gradient_rl', iteration)
+
+        if i % save_epoch == 0:
+            policy_gradient_model.save_weights('../snapshots/policy_gradient_rl', i)
