@@ -1,5 +1,6 @@
 import sys
 import mxnet as mx
+import numpy as np
 sys.path.append('../')
 sys.path.append('./')
 import logging
@@ -281,6 +282,7 @@ class HierarchyDiscriminatorModel:
         batch = self.generate_batch(q, a)
         self.predict_model.forward(batch)
         prob_list = self.predict_model.get_outputs()[0].asnumpy()
+        prob_list = np.squeeze(prob_list)
         print prob_list
         return prob_list
 

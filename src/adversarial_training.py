@@ -60,8 +60,8 @@ if __name__ == '__main__':
             a = sample_qa[1]
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
             reward = discriminator_model.predict(q, a_machine)[1]
-            print q, a
-            print q, a_machine
+            print 'Q : ' + q + ' H : ' + a
+            print 'Q : ' + q + ' M : ' +  a_machine
             print reward
 
 
