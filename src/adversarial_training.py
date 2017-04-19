@@ -39,7 +39,7 @@ if __name__ == '__main__':
                                                        ctx=devs, dropout=0.)
 
     prefix = "../snapshots/discriminator-new-optimizer"
-    discriminator_model = HierarchyDiscriminatorModel(args, textData, is_train=False, prefix=prefix)
+    discriminator_model = HierarchyDiscriminatorModel(args, textData, ctx=devs, is_train=False, prefix=prefix)
 
     policy_gradient_model = PolicyGradientUpdateModel(args.maxLength, batch_size, learning_rate,
                                                       textData, num_hidden, num_embed, num_layer, arg_params)

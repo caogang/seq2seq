@@ -154,7 +154,7 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
 
 class HierarchyDiscriminatorModel:
-    def __init__(self, args, text_data, is_train=True, prefix="../snapshots/discriminator"):
+    def __init__(self, args, text_data, ctx=mx.context.gpu(0), is_train=True, prefix="../snapshots/discriminator"):
         self.args = args
 
         self.batch_size = args.batchSize
@@ -180,7 +180,7 @@ class HierarchyDiscriminatorModel:
         self.input_seq_len = args.maxLengthEnco
         self.output_seq_len = args.maxLengthDeco
 
-        self.devs = mx.context.gpu(1)#0)
+        self.devs = ctx
 
         if args.load is None:
             args.load = 50
