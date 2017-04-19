@@ -283,7 +283,7 @@ class HierarchyDiscriminatorModel:
         self.predict_model.forward(batch)
         prob_list = self.predict_model.get_outputs()[0].asnumpy()
         prob_list = np.squeeze(prob_list)
-        print prob_list
+        # print prob_list
         return prob_list
 
     def train_one_batch(self, batch_tuple):
