@@ -78,4 +78,5 @@ if __name__ == '__main__':
             policy_gradient_model.update_params()
 
         if i % save_epoch == 0:
-            policy_gradient_model.save_weights('../snapshots/policy_gradient_rl', i)
+            discriminator_model.save_check_points('../snapshots/policy_gradient_d', i)
+            policy_gradient_model.save_weights('../snapshots/policy_gradient_g', i)

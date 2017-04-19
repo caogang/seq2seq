@@ -303,6 +303,10 @@ class HierarchyDiscriminatorModel:
         test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, self.args.loadDis)
         return dis_arg_params, dis_aux_params
 
+    def save_check_points(self, save_path, num_epoch):
+        mx.model.save_checkpoint(save_path, num_epoch, self.train_model.symbol(),
+                                 self.dis_arg_params, self.dis_aux_params)
+
     def generate_batch(self, q, a, label=None, is_train=False):
         q = q.rstrip('<eos>')
         a = a.rstrip('<eos>')
