@@ -53,6 +53,16 @@ if __name__ == '__main__':
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
             positive_batch = (q, a, 1)
             negative_batch = (q, a_machine, 0)
+
+            while len(a_machine.split(' ')) > args.maxLength + 1:
+                sample_qa = textData.get_random_qapair()
+                q = sample_qa[0]
+                a = sample_qa[1]
+                a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
+                positive_batch = (q, a, 1)
+                negative_batch = (q, a_machine, 0)
+                print 'Out of max length'
+
             discriminator_model.train_one_batch(positive_batch)
             discriminator_model.train_one_batch(negative_batch)
         for g in xrange(g_steps):
@@ -60,6 +70,14 @@ if __name__ == '__main__':
             q = sample_qa[0]
             a = sample_qa[1]
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
+
+            while len(a_machine.split(' ')) > args.maxLength + 1:
+                sample_qa = textData.get_random_qapair()
+                q = sample_qa[0]
+                a = sample_qa[1]
+                a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
+                print 'Out of max length'
+
             print 'iteration : ' + str(i)
             print 'Q : ' + q + ' H : ' + a
             print 'Q : ' + q + ' M : ' + a_machine
