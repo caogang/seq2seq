@@ -50,10 +50,10 @@ def getArgs():
 
     # Policy Gradient training options
     rlTrainingArgs = parser.add_argument_group('Policy Gradient RL training options')
-    rlTrainingArgs.add_argument('epochRL', type=int, default=5000)
-    rlTrainingArgs.add_argument('saveEveryRL', type=int, default=1000)
-    rlTrainingArgs.add_argument('dStepsRL', type=int, default=5)
-    rlTrainingArgs.add_argument('gStepsRL', type=int, default=1)
+    rlTrainingArgs.add_argument('--epochRL', type=int, default=5000)
+    rlTrainingArgs.add_argument('--saveEveryRL', type=int, default=1000)
+    rlTrainingArgs.add_argument('--dStepsRL', type=int, default=5)
+    rlTrainingArgs.add_argument('--gStepsRL', type=int, default=1)
 
     trainingArgs = parser.add_argument_group('Training options')
     trainingArgs.add_argument('--numEpochs', type=int, default=5000, help='maximum number of epochs to run')
