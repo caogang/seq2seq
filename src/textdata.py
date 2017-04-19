@@ -478,6 +478,7 @@ class TextData:
         # First step: Divide the sentence in token
         tokens = nltk.word_tokenize(sentence)
         if len(tokens) > self.args.maxLength:
+            print 'Return None for : ' + str(sentence) + ', tokens : ' + str(tokens)
             return None
 
         # Second step: Convert the token in word ids
