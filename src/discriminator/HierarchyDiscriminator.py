@@ -298,7 +298,7 @@ class HierarchyDiscriminatorModel:
         self.dis_arg_params, self.dis_aux_params = self.train_one_batch_model.get_params()
 
     def load_check_points(self, prefix):
-        test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, args.loadDis)
+        test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, self.args.loadDis)
         return dis_arg_params, dis_aux_params
 
     def generate_batch(self, q, a, label=None, is_train=False):
