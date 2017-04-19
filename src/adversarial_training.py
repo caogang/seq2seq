@@ -46,7 +46,6 @@ if __name__ == '__main__':
                                                       textData, num_hidden, num_embed, num_layer, arg_params)
 
     for i in xrange(1, iterations + 1):
-        inference_model.load_params(policy_gradient_model.get_weights())
         for d in xrange(d_steps):
             sample_qa = textData.get_random_qapair()
             q = sample_qa[0]
@@ -76,6 +75,8 @@ if __name__ == '__main__':
             gradient = mx.nd.array(pred_grad, ctx=devs)
             policy_gradient_model.backward(gradient)
             policy_gradient_model.update_params()
+            
+            inference_model.load_params(policy_gradient_model.get_weights())
 
         if i % save_epoch == 0:
             discriminator_model.save_check_points('../snapshots/policy_gradient_d', i)
