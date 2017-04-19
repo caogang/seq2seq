@@ -310,8 +310,10 @@ class HierarchyDiscriminatorModel:
     def generate_batch(self, q, a, label=None, is_train=False):
         q = q.rstrip('<eos>')
         a = a.rstrip('<eos>')
+        print q + ' | ' + a
         q_id = self.text_data.sentence2id(q)
         a_id = self.text_data.sentence2id(a)
+        print q_id, a_id
 
         q_padded = [self.text_data.padToken] * (self.args.maxLengthEnco - len(q_id)) + q_id  # Left padding for the input
         a_padded = [self.text_data.padToken] * (self.args.maxLengthEnco - len(a_id)) + a_id

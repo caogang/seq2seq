@@ -60,10 +60,10 @@ if __name__ == '__main__':
             q = sample_qa[0]
             a = sample_qa[1]
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
-            reward = discriminator_model.predict(q, a_machine)[1]
             print 'iteration : ' + str(i)
             print 'Q : ' + q + ' H : ' + a
             print 'Q : ' + q + ' M : ' + a_machine
+            reward = discriminator_model.predict(q, a_machine)[1]
             print 'Probability Human : ' + str(reward)
             pred_grad = policy_gradient_model.forward(q, a_machine)
             gradient = mx.nd.array(pred_grad * reward, ctx=devs)
