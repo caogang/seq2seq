@@ -68,7 +68,7 @@ if __name__ == '__main__':
                 negative_batch = (q, a_machine, 0)
                 a_machine_list = a_machine.split(' ')
                 extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
-                print 'Out of max length'
+                logging.info('Out of max length')
 
             discriminator_model.train_one_batch(positive_batch)
             discriminator_model.train_one_batch(negative_batch)
@@ -87,13 +87,13 @@ if __name__ == '__main__':
                 a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
                 a_machine_list = a_machine.split(' ')
                 extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
-                print 'Out of max length'
+                logging.info('Out of max length')
 
-            print 'iteration : ' + str(i)
-            print 'Q : ' + q + ' H : ' + a
-            print 'Q : ' + q + ' M : ' + a_machine
+            logging.info('iteration : ' + str(i))
+            logging.info('Q : ' + q + ' H : ' + a)
+            logging.info('Q : ' + q + ' M : ' + a_machine)
             reward = discriminator_model.predict(q, a_machine)[1]
-            print 'Probability Human : ' + str(reward)
+            logging.info('Probability Human : ' + str(reward))
             pred_grad = policy_gradient_model.forward(q, a_machine)
             gradient = mx.nd.array(pred_grad * reward, ctx=devs)
             policy_gradient_model.backward(gradient)
