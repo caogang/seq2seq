@@ -45,6 +45,7 @@ if __name__ == '__main__':
                                                       textData, num_hidden, num_embed, num_layer, arg_params)
 
     for i in xrange(iterations):
+        inference_model.load_params(policy_gradient_model.get_weights())
         for d in xrange(d_steps):
             sample_qa = textData.get_random_qapair()
             q = sample_qa[0]
@@ -61,7 +62,15 @@ if __name__ == '__main__':
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
             reward = discriminator_model.predict(q, a_machine)[1]
             print 'Q : ' + q + ' H : ' + a
-            print 'Q : ' + q + ' M : ' +  a_machine
-            print reward
+            print 'Q : ' + q + ' M : ' + a_machine
+            print 'Probability Human : ' + str(reward)
+            pred_grad = policy_gradient_model.forward(q, a_machine)
+            gradient = mx.nd.array(pred_grad * reward, ctx=devs)
+            policy_gradient_model.backward(gradient)
+            policy_gradient_model.update_params()
 
-
+            # teacher forcing
+            pred_grad = policy_gradient_model.forward(q, a)
+            gradient = mx.nd.array(pred_grad, ctx=devs)
+            policy_gradient_model.backward(gradient)
+            policy_gradient_model.update_params()
