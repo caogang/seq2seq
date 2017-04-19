@@ -42,19 +42,28 @@ class PolicyGradientUpdateModel():
         self.updater = mx.optimizer.get_updater(optimizer)
 
     def forward(self, encoding_data, decoding_data):
+        #print encoding_data, type(encoding_data)
+        #print decoding_data, type(decoding_data)
+        encoding_data = self.textData.sentence2id(encoding_data)
+        decoding_data = self.textData.sentence2id(decoding_data.rstrip('<eos>'))
+        #print encoding_data, decoding_data
+        #print 'eos : ' + str(self.textData.eosToken)
+        #print 'pad : ' + str(self.textData.padToken)
+        #print 'go : ' + str(self.textData.goToken)
         if type(encoding_data) == list and type(decoding_data) == list:
             encoding_data_padded = self.tokenize_id_with_seq_len(encoding_data, reverse=True)
-            if decoding_data[-1] != data_utils.EOS_ID:
-                decoding_data += [data_utils.EOS_ID]
+            if decoding_data[-1] != self.textData.eosToken:
+                decoding_data += [self.textData.eosToken]
             if len(decoding_data) + 1 >= self.seq_len:
-                decoding_data_tmp = list([data_utils.GO_ID] + decoding_data)
+                decoding_data_tmp = list([self.textData.goToken] + decoding_data)
                 decoding_data_tmp = decoding_data_tmp[:self.seq_len]
                 decoding_data_padded = self.tokenize_id_with_seq_len(decoding_data_tmp, reverse=False)
             else:
-                decoding_data_padded = self.tokenize_id_with_seq_len(list([data_utils.GO_ID] + decoding_data))
+                decoding_data_padded = self.tokenize_id_with_seq_len(list([self.textData.goToken] + decoding_data))
 
         for key in self.model_input_shape.keys():
             self.model_arg_arrays[key][:] = 0
+        #print encoding_data_padded.asnumpy(), decoding_data_padded.asnumpy()
         encoding_data_padded.copyto(self.model_arg_arrays["data"])
         decoding_data_padded.copyto(self.model_arg_arrays["decoding_data"])
         self.model.forward(is_train=True)
@@ -71,8 +80,8 @@ class PolicyGradientUpdateModel():
         size = rhs[key].asnumpy().shape
         lhs[key] = np.zeros(size)
         lhs[key][:] += rhs[key].asnumpy()
-        logging.info(key)
-        logging.info(rhs[key].asnumpy())
+        # logging.info(key)
+        # logging.info(rhs[key].asnumpy())
 
     def backward(self, gradient):
         # logging.info(self.model.grad_dict["pred"].asnumpy().shape)
@@ -84,13 +93,13 @@ class PolicyGradientUpdateModel():
                 self.initialize_dict(self.accumulate_weight, self.model.grad_dict, key)
         else:
             for key in self.weights_key:
-                logging.info(key)
-                logging.info(self.model.grad_dict[key].asnumpy())
+                # logging.info(key)
+                # logging.info(self.model.grad_dict[key].asnumpy())
                 self.accumulate_weight[key][:] += self.model.grad_dict[key].asnumpy()
 
     def update_params(self):
         for i, key in enumerate(self.weights_key):
-            logging.info(self.accumulate_weight[key])
+            # logging.info(self.accumulate_weight[key])
             self.updater(i, mx.nd.array(self.accumulate_weight[key], ctx=self.devs), self.model.arg_dict[key])
         for key in self.weights_key:
             self.accumulate_weight[key][:] = 0.0
@@ -130,8 +139,8 @@ class PolicyGradientUpdateModel():
         for key in input_shapes.keys(): req[key] = 'null'
         model = symbol.simple_bind(ctx=self.devs, grad_req=req, **input_shapes)
         arg_arrays = dict(zip(symbol.list_arguments(), model.arg_arrays))
-        logging.info(symbol.list_arguments())
-        logging.info(model.arg_arrays)
+        # logging.info(symbol.list_arguments())
+        # logging.info(model.arg_arrays)
 
         self.model_symbol = symbol
         for name, arg in arg_params.items():

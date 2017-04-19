@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     devs = mx.context.gpu(0)
 
-    iterations = 100
+    iterations = 5000
     d_steps = 5
     g_steps = 1
 
@@ -61,6 +61,7 @@ if __name__ == '__main__':
             a = sample_qa[1]
             a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
             reward = discriminator_model.predict(q, a_machine)[1]
+            print 'iteration : ' + str(i)
             print 'Q : ' + q + ' H : ' + a
             print 'Q : ' + q + ' M : ' + a_machine
             print 'Probability Human : ' + str(reward)
@@ -74,3 +75,4 @@ if __name__ == '__main__':
             gradient = mx.nd.array(pred_grad, ctx=devs)
             policy_gradient_model.backward(gradient)
             policy_gradient_model.update_params()
+    policy_gradient_model.save_weights('../snapshots/policy_gradient_rl', iteration)
