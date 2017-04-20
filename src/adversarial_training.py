@@ -40,7 +40,8 @@ if __name__ == '__main__':
                                                        beam_size,
                                                        ctx=devs, dropout=0.)
 
-    prefix = "../snapshots/discriminator-new-optimizer"
+    #prefix = "../snapshots/discriminator-new-optimizer"
+    prefix = "../snapshots/discriminator"
     discriminator_model = HierarchyDiscriminatorModel(args, textData, ctx=devs, is_train=False, prefix=prefix)
 
     policy_gradient_model = PolicyGradientUpdateModel(args.maxLength, batch_size, learning_rate,
@@ -49,6 +50,7 @@ if __name__ == '__main__':
     pattern = re.compile(r'<.*>')
 
     for i in xrange(1, iterations + 1):
+        logging.info('Discriminator Training')
         for d in xrange(d_steps):
             sample_qa = textData.get_random_qapair()
             q = sample_qa[0]
@@ -59,7 +61,14 @@ if __name__ == '__main__':
             a_machine_list = a_machine.split(' ')
             extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
 
-            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1:
+            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1 or len(a_machine_list) <= 1:
+                if len(a_machine_list) > args.maxLength + 1:
+                    logging.info('Out of max length')
+                    break
+                if len(a_machine_list) <= 1:
+                    logging.info('Too short')
+                if extra_num > 1:
+                    logging.info('Containing <*> string')
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
                 a = sample_qa[1]
@@ -68,10 +77,10 @@ if __name__ == '__main__':
                 negative_batch = (q, a_machine, 0)
                 a_machine_list = a_machine.split(' ')
                 extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
-                logging.info('Out of max length')
 
             discriminator_model.train_one_batch(positive_batch)
             discriminator_model.train_one_batch(negative_batch)
+        logging.info('Generator Training')
         for g in xrange(g_steps):
             sample_qa = textData.get_random_qapair()
             q = sample_qa[0]
@@ -80,14 +89,24 @@ if __name__ == '__main__':
             a_machine_list = a_machine.split(' ')
             extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
 
-            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1:
+            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1 or len(a_machine_list) <= 1:
+                if len(a_machine_list) > args.maxLength + 1:
+                    logging.info('Out of max length')
+                    #pred_grad = policy_gradient_model.forward(q, a_machine)
+                    #gradient = mx.nd.array(pred_grad * 0.1, ctx=devs)
+                    #policy_gradient_model.backward(gradient)
+                    #policy_gradient_model.update_params()
+                    break
+                if len(a_machine_list) <= 1:
+                    logging.info('Too short')
+                if extra_num > 1:
+                    logging.info('Containing <*> string')
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
                 a = sample_qa[1]
                 a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
                 a_machine_list = a_machine.split(' ')
                 extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
-                logging.info('Out of max length')
 
             logging.info('iteration : ' + str(i))
             logging.info('Q : ' + q + ' H : ' + a)

@@ -473,13 +473,15 @@ class TextData:
 
     def sentence2id(self, sentence):
         if sentence == '':
+            print 'Return None for : ' + str(sentence)
             return None
 
         # First step: Divide the sentence in token
         tokens = nltk.word_tokenize(sentence)
         if len(tokens) > self.args.maxLength:
-            print 'Return None for : ' + str(sentence) + ', tokens : ' + str(tokens)
-            return None
+            print 'Return Truncated tokens for : ' + str(sentence) + ', tokens : ' + str(tokens)
+            tokens = tokens[:self.args.maxLength]
+            print 'Truncated tokens : ' + str(tokens)
 
         # Second step: Convert the token in word ids
         wordIds = []
