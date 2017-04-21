@@ -44,8 +44,8 @@ def getArgs():
     disArgs.add_argument('--contentHiddenNums', type=int, default=512)
     disArgs.add_argument('--loadDis', type=int, default=100)
 
-    # Discriminator training options
-    disTrainingArgs = parser.add_argument_group('Discriminator training options')
+    # Discriminator pretrain options
+    disTrainingArgs = parser.add_argument_group('Discriminator pretrain options')
     disTrainingArgs.add_argument('--numEpochDis', type=int, default=5001)
 
     # Policy Gradient training options
@@ -54,6 +54,12 @@ def getArgs():
     rlTrainingArgs.add_argument('--saveEveryRL', type=int, default=1000)
     rlTrainingArgs.add_argument('--dStepsRL', type=int, default=5)
     rlTrainingArgs.add_argument('--gStepsRL', type=int, default=1)
+
+    # Adversarial training options
+    advTrainingArgs = parser.add_argument_group('Adversarial training options')
+    advTrainingArgs.add_argument('--loadPrefixAdv', type=str, default='../snapshots/policy_gradient')
+    advTrainingArgs.add_argument('--loadEpochAdv', type=int, default=100)
+
 
     trainingArgs = parser.add_argument_group('Training options')
     trainingArgs.add_argument('--numEpochs', type=int, default=5000, help='maximum number of epochs to run')

@@ -154,7 +154,8 @@ def hierarchyDiscriminatorSymbol(inputHiddenNums, outputHiddenNums, contentHidde
 
 
 class HierarchyDiscriminatorModel:
-    def __init__(self, args, text_data, ctx=mx.context.gpu(0), is_train=True, prefix="../snapshots/discriminator"):
+    def __init__(self, args, text_data, ctx=mx.context.gpu(0), is_train=True, prefix="../snapshots/discriminator",
+                 load_epoch=None):
         self.args = args
 
         self.batch_size = args.batchSize
@@ -185,6 +186,9 @@ class HierarchyDiscriminatorModel:
         if args.load is None:
             args.load = 50
 
+        if load_epoch is None:
+            load_epoch = self.args.loadDis
+
         _, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
         model = Seq2SeqInferenceModelCornellData(args.maxLength, 1, self.learning_rate,
                                                  text_data, args.hiddenSize, args.embeddingSize, args.numLayers,
@@ -194,7 +198,7 @@ class HierarchyDiscriminatorModel:
         self.data = DiscriminatorData(args, text_data, model, forceRegenerate=False)
         #self.data = DiscriminatorData(args, text_data, None, forceRegenerate=False)
 
-        self.dis_arg_params, self.dis_aux_params = self.load_check_points(prefix)
+        self.dis_arg_params, self.dis_aux_params = self.load_check_points(prefix, load_epoch)
         self.train_model = self.generate_model(self.batch_size, self.dis_arg_params, self.dis_aux_params)
         self.train_one_batch_model = self.generate_model(1, self.dis_arg_params, self.dis_aux_params)
         self.predict_model = self.generate_model(1, self.dis_arg_params, self.dis_aux_params, is_train=False)
@@ -299,8 +303,8 @@ class HierarchyDiscriminatorModel:
 
         self.dis_arg_params, self.dis_aux_params = self.train_one_batch_model.get_params()
 
-    def load_check_points(self, prefix):
-        test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, self.args.loadDis)
+    def load_check_points(self, prefix, load_epoch):
+        test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, load_epoch)
         return dis_arg_params, dis_aux_params
 
     def save_check_points(self, save_path, num_epoch):

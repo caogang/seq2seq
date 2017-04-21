@@ -33,19 +33,22 @@ if __name__ == '__main__':
     d_steps = args.dStepsRL
     g_steps = args.gStepsRL
     save_epoch = args.saveEveryRL
+    adv_prefix = args.loadPrefixAdv
+    adv_load_epoch = args.loadEpochAdv
 
-    _, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
+    _, g_arg_params, __ = mx.model.load_checkpoint(adv_prefix + '_g', adv_load_epoch)
     inference_model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
-                                                       textData, num_hidden, num_embed, num_layer, arg_params,
+                                                       textData, num_hidden, num_embed, num_layer, g_arg_params,
                                                        beam_size,
                                                        ctx=devs, dropout=0.)
 
     #prefix = "../snapshots/discriminator-new-optimizer"
-    prefix = "../snapshots/discriminator"
-    discriminator_model = HierarchyDiscriminatorModel(args, textData, ctx=devs, is_train=False, prefix=prefix)
+    #prefix = "../snapshots/discriminator"
+    discriminator_model = HierarchyDiscriminatorModel(args, textData, ctx=devs, is_train=False,
+                                                      prefix=adv_prefix+'_d', load_epoch=adv_load_epoch)
 
     policy_gradient_model = PolicyGradientUpdateModel(args.maxLength, batch_size, learning_rate,
-                                                      textData, num_hidden, num_embed, num_layer, arg_params)
+                                                      textData, num_hidden, num_embed, num_layer, g_arg_params)
 
     pattern = re.compile(r'<.*>')
 
@@ -127,5 +130,5 @@ if __name__ == '__main__':
             inference_model.load_params(policy_gradient_model.get_weights())
 
         if i % save_epoch == 0:
-            discriminator_model.save_check_points('../snapshots/policy_gradient_d', i)
-            policy_gradient_model.save_weights('../snapshots/policy_gradient_g', i)
+            discriminator_model.save_check_points(adv_prefix + '_d', i)
+            policy_gradient_model.save_weights(adv_prefix + '_g', i)
