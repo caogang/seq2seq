@@ -321,7 +321,7 @@ class TextData:
         Args:
             conversation (Obj): a conversation object containing the lines to extract
         """
-
+        samples = []
         # Iterate over all the lines of the conversation
         for i in tqdm_wrap(range(len(conversation['lines']) - 1),  # We ignore the last line (no answer for it)
                            desc='Conversation', leave=False):
@@ -331,8 +331,6 @@ class TextData:
             inputWords  = self.extractText(inputLine['text'])
             targetWords = self.extractText(targetLine['text'], True)
 
-            samples = []
-
             if inputWords and targetWords:  # Filter wrong samples (if one of the list is empty)
                 samples.append([inputWords, targetWords])
 
@@ -340,13 +338,17 @@ class TextData:
 
         i = 0
         for p in samples:
+            print i
             if i < 6:
+                print 'add train'
                 self.trainingSamples.append(p)
                 i += 1
             elif i < 9:
+                print 'add valid'
                 self.validationSamples.append(p)
                 i += 1
             else:
+                print 'add test'
                 self.testSamples.append(p)
                 i = 0
 
@@ -658,9 +660,9 @@ if __name__ == "__main__":
     args.maxLengthEnco = args.maxLength
     args.maxLengthDeco = args.maxLength + 2
     batches = textData.getBatches()
-    print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
+    # print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
     batches = textData.getBatches(type='validation')
-    print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
+    # print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
     init_c = [("encode_init_c", (args.batchSize, 2, 1024))] # Need to fix
     init_h = [("encode_init_h", (args.batchSize, 2, 1024))] # Need to fix
     init_states = init_c + init_h
