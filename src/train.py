@@ -45,17 +45,17 @@ class GroupPerplxity(mx.metric.EvalMetric):
         self.axis = axis
 
     def update(self, labels, preds):
+        preds = [preds[0]]
         assert len(labels) == len(preds)
         loss = 0.
         num = 0
         probs = []
 
         for label, pred in zip(labels, preds):
-            preds = [preds[0]]
             assert label.size == pred.size/pred.shape[-1], \
                 "shape mismatch: %s vs. %s"%(label.shape, pred.shape)
             label = label.as_in_context(pred.context).astype(dtype='int32').reshape((label.size,))
-            pred = mx.ndarray.pick(pred, label, axis=self.axis)
+            pred = mx.ndarray.batch_take(pred, label)
             probs.append(pred)
 
         for label, prob in zip(labels, probs):
