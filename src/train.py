@@ -40,32 +40,35 @@ class GroupAccuracy(mx.metric.EvalMetric):
 
 class GroupPerplxity(mx.metric.EvalMetric):
     """Calculate group perplexity."""
-    def __init__(self, axis=-1):
-        super(GroupPerplxity, self).__init__('Group Perplexity')
-        self.axis = axis
+    def __init__(self, ignore_label):
+        super(GroupPerplxity, self).__init__('GroupPerplexity')
+        self.ignore_label = ignore_label
 
     def update(self, labels, preds):
-        preds = [preds[0]]
         assert len(labels) == len(preds)
         loss = 0.
         num = 0
         probs = []
 
         for label, pred in zip(labels, preds):
-            assert label.size == pred.size/pred.shape[-1], \
-                "shape mismatch: %s vs. %s"%(label.shape, pred.shape)
+            assert label.size == pred.size / pred.shape[-1], \
+                "shape mismatch: %s vs. %s" % (label.shape, pred.shape)
             label = label.as_in_context(pred.context).astype(dtype='int32').reshape((label.size,))
             pred = mx.ndarray.batch_take(pred, label)
             probs.append(pred)
 
         for label, prob in zip(labels, probs):
             prob = prob.asnumpy()
-            num += prob.size
+            if self.ignore_label is not None:
+                ignore = label.asnumpy().flatten() == self.ignore_label
+                prob = prob * (1 - ignore) + ignore
+                num += prob.size - ignore.sum()
+            else:
+                num += prob.size
             loss += -np.log(np.maximum(1e-10, prob)).sum()
 
         self.sum_metric += np.exp(loss / num)
         self.num_inst += 1
-
 
 if __name__ == "__main__":
     #args = parser.parse_args()
@@ -84,7 +87,7 @@ if __name__ == "__main__":
     args.maxLengthEnco = args.maxLength
     args.maxLengthDeco = args.maxLength + 2
 
-    devs = mx.context.gpu(1)
+    devs = mx.context.gpu(2)
 
     # Put needed training stage here
     training_stage = [1]
