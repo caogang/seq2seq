@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
         Forward_data_feed = True
         forward_data_train = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True)
+        forward_data_eval = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True, validation=True)
                                         #BucketSentenceIter(target_path, vocab,
                                         #buckets, batch_size,num_layers, init_states, Forward_data_feed)
 
@@ -91,6 +92,7 @@ if __name__ == "__main__":
                                      wd = 0,
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = forward_data_train,
+                  eval_data = forward_data_eval,
                   eval_metric = GroupAccuracy(),
                   batch_end_callback=mx.callback.Speedometer(batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 50))

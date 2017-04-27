@@ -199,7 +199,7 @@ class TextData:
         Return:
             list<Batch>: Get a list of the batches for the next epoch
         """
-        self.shuffle()
+        #self.shuffle()
 
         src_data = None
         if type == 'train':
@@ -660,11 +660,11 @@ if __name__ == "__main__":
     args.maxLengthEnco = args.maxLength
     args.maxLengthDeco = args.maxLength + 2
     batches = textData.getBatches()
-    # print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
+    print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
     batches = textData.getBatches(type='validation')
-    # print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
+    print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
     init_c = [("encode_init_c", (args.batchSize, 2, 1024))] # Need to fix
     init_h = [("encode_init_h", (args.batchSize, 2, 1024))] # Need to fix
     init_states = init_c + init_h
     data_train = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True)
-    data_eval = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True)
+    data_eval = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True, validation=True)
