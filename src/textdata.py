@@ -79,6 +79,8 @@ class TextData:
         self.unknownToken = -1  # Word dropped from vocabulary
 
         self.trainingSamples = []  # 2d array containing each question and his answer [[input,target]]
+        self.validationSamples = []
+        self.testSamples = []
 
         self.word2id = {}
         self.id2word = {}  # For a rapid conversion
@@ -86,7 +88,11 @@ class TextData:
         self.loadCorpus(self.samplesDir)
 
         # Plot some stats:
-        print('Loaded {}: {} words, {} QA'.format(self.args.corpus, len(self.word2id), len(self.trainingSamples)))
+        print('Loaded {}: {} words, {} QA'.format(self.args.corpus, len(self.word2id),
+                                                  len(self.trainingSamples) + len(self.validationSamples) + len(self.testSamples)))
+        print('Training {} QA'.format(len(self.trainingSamples)))
+        print('Validation {} QA'.format(len(self.validationSamples)))
+        print('Test {} QA'.format(len(self.testSamples)))
 
         if self.args.playDataset:
             self.playDataset()
@@ -113,6 +119,8 @@ class TextData:
         """
         print('Shuffling the dataset...')
         random.shuffle(self.trainingSamples)
+        random.shuffle(self.validationSamples)
+        random.shuffle(self.testSamples)
 
     def _createBatch(self, samples):
         """Create a single batch from the list of sample. The batch size is automatically defined by the number of
@@ -185,20 +193,28 @@ class TextData:
 
         return batch
 
-    def getBatches(self):
+    def getBatches(self, type='train'):
         """Prepare the batches for the current epoch
         Return:
             list<Batch>: Get a list of the batches for the next epoch
         """
         self.shuffle()
 
+        src_data = None
+        if type == 'train':
+            src_data = self.trainingSamples
+        elif type == 'validation':
+            src_data = self.validationSamples
+        else:
+            raise ValueError("parameter type '%s' is error, should be 'train' or 'validation'." % type)
+
         batches = []
 
         def genNextSamples():
             """ Generator over the mini-batch training samples
             """
-            for i in range(0, self.getSampleSize(), self.args.batchSize):
-                yield self.trainingSamples[i:min(i + self.args.batchSize, self.getSampleSize())]
+            for i in range(0, len(src_data), self.args.batchSize):
+                yield src_data[i:min(i + self.args.batchSize, len(src_data))]
 
         for samples in genNextSamples():
             batch = self._createBatch(samples)
@@ -260,7 +276,9 @@ class TextData:
             data = {  # Warning: If adding something here, also modifying loadDataset
                 'word2id': self.word2id,
                 'id2word': self.id2word,
-                'trainingSamples': self.trainingSamples
+                'trainingSamples': self.trainingSamples,
+                'validationSamples': self.validationSamples,
+                'testSamples': self.testSamples
                 }
             pickle.dump(data, handle, -1)  # Using the highest protocol available
 
@@ -274,6 +292,8 @@ class TextData:
             self.word2id = data['word2id']
             self.id2word = data['id2word']
             self.trainingSamples = data['trainingSamples']
+            self.validationSamples = data['validationSamples']
+            self.testSamples = data['testSamples']
 
             self.padToken = self.word2id['<pad>']
             self.goToken = self.word2id['<go>']
@@ -311,8 +331,25 @@ class TextData:
             inputWords  = self.extractText(inputLine['text'])
             targetWords = self.extractText(targetLine['text'], True)
 
+            samples = []
+
             if inputWords and targetWords:  # Filter wrong samples (if one of the list is empty)
-                self.trainingSamples.append([inputWords, targetWords])
+                samples.append([inputWords, targetWords])
+
+            random.shuffle(samples)
+
+            i = 0
+            for p in samples:
+                if i < 6:
+                    self.trainingSamples.append(p)
+                    i += 1
+                elif i < 9:
+                    self.validationSamples.append(p)
+                    i += 1
+                else:
+                    self.testSamples.append(p)
+                    i = 0
+
 
     def extractText(self, line, isTarget=False):
         """Extract the words from a sample lines
@@ -549,7 +586,8 @@ class SimpleBatch(object):
         return [(n, x.shape) for n, x in zip(self.label_names, self.label)]
 
 class CornellDataIter(mx.io.DataIter):
-    def __init__(self, textData, buckets, batch_size, init_states, forward_data_feed, data_name="data", label_name="label"):
+    def __init__(self, textData, buckets, batch_size, init_states, forward_data_feed, data_name="data", label_name="label",
+                 validation=False):
         super(CornellDataIter, self).__init__()
         self.textData = textData
         self.vocab_size = textData.getVocabularySize()
@@ -562,6 +600,7 @@ class CornellDataIter(mx.io.DataIter):
         self.forward_data_feed = forward_data_feed
         self.data = [[] for _ in buckets]
         self.default_bucket_key = max(buckets)
+        self.validation = validation
 
         self.batch_size = batch_size
 
@@ -570,7 +609,10 @@ class CornellDataIter(mx.io.DataIter):
         self.provide_data = [('data', (self.batch_size, self.default_bucket_key)),('decoding_data',(self.batch_size,self.default_bucket_key + 2))] + init_states
         self.provide_label = [('softmax_label', (self.batch_size, self.default_bucket_key + 2))]
         self.curr_idx = 0
-        self.batches = self.textData.getBatches()
+        if validation:
+            self.batches = self.textData.getBatches(type='validation')
+        else:
+            self.batches = self.textData.getBatches()
 
     def __iter__(self):
         return self
@@ -601,7 +643,10 @@ class CornellDataIter(mx.io.DataIter):
 
     def reset(self):
         self.textData.shuffle()
-        self.batches = self.textData.getBatches()
+        if self.validation:
+            self.batches = self.textData.getBatches(type='validation')
+        else:
+            self.batches = self.textData.getBatches()
         self.curr_idx = 0
 
 
@@ -614,7 +659,10 @@ if __name__ == "__main__":
     args.maxLengthDeco = args.maxLength + 2
     batches = textData.getBatches()
     print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
+    batches = textData.getBatches(type='validation')
+    print textData.printBatch(batches[0]), len(batches[0].encoderSeqs)
     init_c = [("encode_init_c", (args.batchSize, 2, 1024))] # Need to fix
     init_h = [("encode_init_h", (args.batchSize, 2, 1024))] # Need to fix
     init_states = init_c + init_h
-    data = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True)
+    data_train = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True)
+    data_eval = CornellDataIter(textData, [args.maxLength,], args.batchSize, init_states, True)
