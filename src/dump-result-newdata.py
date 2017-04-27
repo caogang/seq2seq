@@ -29,8 +29,9 @@ if __name__ == "__main__":
     if args.load is None:
         args.load = 50
 
-    devs = mx.context.gpu(0)
-    _, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
+    devs = mx.context.gpu(1)
+    #_, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
+    _, arg_params, __ = mx.model.load_checkpoint("../snapshots/policy_gradient_g", 23500)
     model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
                 textData, num_hidden, num_embed, num_layer, arg_params, beam_size, ctx=devs, dropout=0. )
 
