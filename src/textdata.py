@@ -78,6 +78,7 @@ class TextData:
         self.eosToken = -1  # End of sequence
         self.unknownToken = -1  # Word dropped from vocabulary
 
+        self.samples = []
         self.trainingSamples = []  # 2d array containing each question and his answer [[input,target]]
         self.validationSamples = []
         self.testSamples = []
@@ -314,6 +315,24 @@ class TextData:
         for conversation in tqdm(conversations, desc='Extract conversations'):
             self.extractConversation(conversation)
 
+        random.shuffle(self.samples)
+
+        i = 0
+        for p in self.samples:
+            print i
+            if i < 6:
+                print 'add train'
+                self.trainingSamples.append(p)
+                i += 1
+            elif i < 9:
+                print 'add valid'
+                self.validationSamples.append(p)
+                i += 1
+            else:
+                print 'add test'
+                self.testSamples.append(p)
+                i = 0
+
         # The dataset will be saved in the same order it has been extracted
 
     def extractConversation(self, conversation):
@@ -321,7 +340,6 @@ class TextData:
         Args:
             conversation (Obj): a conversation object containing the lines to extract
         """
-        samples = []
         # Iterate over all the lines of the conversation
         for i in tqdm_wrap(range(len(conversation['lines']) - 1),  # We ignore the last line (no answer for it)
                            desc='Conversation', leave=False):
@@ -332,25 +350,7 @@ class TextData:
             targetWords = self.extractText(targetLine['text'], True)
 
             if inputWords and targetWords:  # Filter wrong samples (if one of the list is empty)
-                self.trainingSamples.append([inputWords, targetWords])
-
-        # random.shuffle(samples)
-        #
-        # i = 0
-        # for p in samples:
-        #     print i
-        #     if i < 6:
-        #         print 'add train'
-        #         self.trainingSamples.append(p)
-        #         i += 1
-        #     elif i < 9:
-        #         print 'add valid'
-        #         self.validationSamples.append(p)
-        #         i += 1
-        #     else:
-        #         print 'add test'
-        #         self.testSamples.append(p)
-        #         i = 0
+                self.samples.append([inputWords, targetWords])
 
 
     def extractText(self, line, isTarget=False):
