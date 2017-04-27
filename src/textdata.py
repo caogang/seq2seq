@@ -332,25 +332,25 @@ class TextData:
             targetWords = self.extractText(targetLine['text'], True)
 
             if inputWords and targetWords:  # Filter wrong samples (if one of the list is empty)
-                samples.append([inputWords, targetWords])
+                self.trainingSamples.append([inputWords, targetWords])
 
-        random.shuffle(samples)
-
-        i = 0
-        for p in samples:
-            print i
-            if i < 6:
-                print 'add train'
-                self.trainingSamples.append(p)
-                i += 1
-            elif i < 9:
-                print 'add valid'
-                self.validationSamples.append(p)
-                i += 1
-            else:
-                print 'add test'
-                self.testSamples.append(p)
-                i = 0
+        # random.shuffle(samples)
+        #
+        # i = 0
+        # for p in samples:
+        #     print i
+        #     if i < 6:
+        #         print 'add train'
+        #         self.trainingSamples.append(p)
+        #         i += 1
+        #     elif i < 9:
+        #         print 'add valid'
+        #         self.validationSamples.append(p)
+        #         i += 1
+        #     else:
+        #         print 'add test'
+        #         self.testSamples.append(p)
+        #         i = 0
 
 
     def extractText(self, line, isTarget=False):
