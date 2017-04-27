@@ -38,30 +38,32 @@ class GroupAccuracy(mx.metric.EvalMetric):
         else:
             return mx.ndarray.argmax_channel(pred)
 
-class GroupPerplxity(mx.metric.EvalMetric):
+class GroupPerplexity(mx.metric.EvalMetric):
     """Calculate group perplexity."""
-    def __init__(self, ignore_label):
-        super(GroupPerplxity, self).__init__('GroupPerplexity')
+    def __init__(self, ignore_label, axis=-1):
+        super(GroupPerplexity, self).__init__('Group Perplexity')
         self.ignore_label = ignore_label
+        self.axis = axis
 
     def update(self, labels, preds):
+        preds = [preds[0]]
         assert len(labels) == len(preds)
         loss = 0.
         num = 0
         probs = []
 
         for label, pred in zip(labels, preds):
-            assert label.size == pred.size / pred.shape[-1], \
-                "shape mismatch: %s vs. %s" % (label.shape, pred.shape)
+            assert label.size == pred.size/pred.shape[-1], \
+                "shape mismatch: %s vs. %s"%(label.shape, pred.shape)
             label = label.as_in_context(pred.context).astype(dtype='int32').reshape((label.size,))
-            pred = mx.ndarray.batch_take(pred, label)
+            pred = mx.ndarray.pick(pred.reshape((-1, pred.shape[-1])), label, axis=self.axis)
             probs.append(pred)
 
         for label, prob in zip(labels, probs):
             prob = prob.asnumpy()
             if self.ignore_label is not None:
                 ignore = label.asnumpy().flatten() == self.ignore_label
-                prob = prob * (1 - ignore) + ignore
+                prob = prob*(1-ignore) + ignore
                 num += prob.size - ignore.sum()
             else:
                 num += prob.size
@@ -125,6 +127,6 @@ if __name__ == "__main__":
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = forward_data_train,
                   eval_data = forward_data_eval,
-                  eval_metric = GroupPerplxity(),
+                  eval_metric = GroupPerplexity(None),
                   batch_end_callback=mx.callback.Speedometer(batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 50))
