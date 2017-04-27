@@ -29,6 +29,8 @@ class DiscriminatorData():
 
         self.samplesName = 'discriminator.pkl'
         samplesDir = os.path.join(args.rootDir, 'data/samples/')
+        self.trainingSamples = []
+        self.validationSamples = []
         self.loadData(samplesDir)
         pass
 
@@ -101,6 +103,22 @@ class DiscriminatorData():
 
         return valid
 
+    def __checkValidValidationSamples(self):
+        valid = True
+
+        orgLen = len(self.validationSamples)
+
+        for sample in self.validationSamples:
+            if sample[0] is None or sample[1] is None:
+                self.validationSamples.remove(sample)
+                valid = False
+
+        if not valid:
+            print('Origin discriminator validation size : ' + str(orgLen))
+            print('Clean discriminator validation size : ' + str(len(self.validationSamples)))
+
+        return valid
+
     def loadData(self, dirName):
         datasetExist = False
         print(os.path.join(dirName, self.samplesName))
@@ -114,12 +132,16 @@ class DiscriminatorData():
             self.generateNegetiveSamples(self.textData, self.model)
 
             self.__checkValidTrainingSamples()
+            self.__checkValidValidationSamples()
 
             # Saving
             print('Saving discriminator dataset...')
+            print 'discriminator dataset training : %d QA' %len(self.trainingSamples)
+            print 'discriminator dataset validation : %d QA' %len(self.validationSamples)
             with open(os.path.join(dirName, self.samplesName), 'wb') as handle:
                 data = {
-                    'trainingSamples': self.trainingSamples
+                    'trainingSamples': self.trainingSamples,
+                    'validationSamples': self.validationSamples
                 }
                 pickle.dump(data, handle, -1)  # Using the highest protocol available
         else:
@@ -127,12 +149,19 @@ class DiscriminatorData():
             with open(os.path.join(dirName, self.samplesName), 'rb') as handle:
                 data = pickle.load(handle)
                 self.trainingSamples = data['trainingSamples']
+                self.validationSamples = data['validationSamples']
+            print 'discriminator dataset training : %d QA' %len(self.trainingSamples)
+            print 'discriminator dataset validation : %d QA' %len(self.validationSamples)
 
-            if not self.__checkValidTrainingSamples():
+            valid = self.__checkValidTrainingSamples()
+            valid = self.__checkValidValidationSamples() and valid
+
+            if not valid:
                 print('Resaving discriminator dataset...')
                 with open(os.path.join(dirName, self.samplesName), 'wb') as handle:
                     data = {
-                        'trainingSamples': self.trainingSamples
+                        'trainingSamples': self.trainingSamples,
+                        'validationSamples': self.validationSamples
                     }
                     pickle.dump(data, handle, -1)  # Using the highest protocol available
 
@@ -166,12 +195,28 @@ class DiscriminatorData():
             print 'process: ' + str(process) + '/ max: ' + str(lenMax)
 
         # [[list < id >, list < id >, human_label], ...]
-        self.trainingSamples = positiveSamples
-        print len(self.trainingSamples)
+        samples = positiveSamples
+        print len(samples)
         print len(negetiveSamples)
         # assert len(self.trainingSamples) == len(negetiveSamples)
-        self.trainingSamples.extend(negetiveSamples)
-        print len(self.trainingSamples)
+        samples.extend(negetiveSamples)
+        print len(samples)
+
+        random.shuffle(samples)
+
+        i = 0
+        for p in samples:
+            print i
+            if i < 7:
+                print 'add train'
+                self.trainingSamples.append(p)
+                i += 1
+            else:
+                print 'add valid'
+                self.validationSamples.append(p)
+                i += 1
+            if i == 10:
+                i = 0
         pass
 
     def getSampleSize(self):
