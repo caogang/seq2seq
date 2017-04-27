@@ -38,6 +38,35 @@ class GroupAccuracy(mx.metric.EvalMetric):
         else:
             return mx.ndarray.argmax_channel(pred)
 
+class GroupPerplxity(mx.metric.EvalMetric):
+    """Calculate group perplexity."""
+    def __init__(self, axis=-1):
+        super(GroupPerplxity, self).__init__('Group Perplexity')
+        self.axis = axis
+
+    def update(self, labels, preds):
+        assert len(labels) == len(preds)
+        loss = 0.
+        num = 0
+        probs = []
+
+        for label, pred in zip(labels, preds):
+            preds = [preds[0]]
+            assert label.size == pred.size/pred.shape[-1], \
+                "shape mismatch: %s vs. %s"%(label.shape, pred.shape)
+            label = label.as_in_context(pred.context).astype(dtype='int32').reshape((label.size,))
+            pred = mx.ndarray.pick(pred, label, axis=self.axis)
+            probs.append(pred)
+
+        for label, prob in zip(labels, probs):
+            prob = prob.asnumpy()
+            num += prob.size
+            loss += -np.log(np.maximum(1e-10, prob)).sum()
+
+        self.sum_metric += np.exp(loss / num)
+        self.num_inst += 1
+
+
 if __name__ == "__main__":
     #args = parser.parse_args()
     args = getArgs()
@@ -93,6 +122,6 @@ if __name__ == "__main__":
                                      initializer = mx.initializer.Uniform(scale=0.07))
         model.fit(X = forward_data_train,
                   eval_data = forward_data_eval,
-                  eval_metric = GroupAccuracy(),
+                  eval_metric = GroupPerplxity(),
                   batch_end_callback=mx.callback.Speedometer(batch_size, 50),
                   epoch_end_callback=mx.callback.do_checkpoint("../snapshots/seq2seq_newdata", period = 50))
