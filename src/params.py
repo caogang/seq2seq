@@ -6,7 +6,7 @@ def getArgs():
 
     # Global options
     globalArgs = parser.add_argument_group('Global options')
-    globalArgs.add_argument('--load', type=int, default=5000,  help='if set, will load the corresponded seq2seq checkpoint to do test(only valid for predict*.py and dump*.py)')
+    globalArgs.add_argument('--load', type=int, default=26,  help='if set, will load the corresponded seq2seq checkpoint to do test(only valid for predict*.py and dump*.py)')
     globalArgs.add_argument('--test',
                                     nargs='?',
                                     default=None,
