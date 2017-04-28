@@ -286,7 +286,7 @@ class HierarchyDiscriminatorModel:
                              num_epoch=self.num_epoch,
                              batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
                              epoch_end_callback=mx.callback.do_checkpoint(self.prefix,
-                                                                          period=100))
+                                                                          period=1))
         self.dis_arg_params, self.dis_aux_params = self.train_model.get_params()
         self.params_valid = True
 
@@ -370,20 +370,19 @@ if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
     prefix = "../snapshots/discriminator-new-optimizer"
-    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
-    #discriminator_model.train()
-    discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
-    discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
-    discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
-    discriminator_inference_model.predict("hi . <eos>", "i 'm fine . <eos>")
-    discriminator_inference_model.predict("hi . <eos>", "what are you doing ? <eos>")
-    discriminator_inference_model.predict("who are you ? <eos>", "i 'm bob . <eos>")
-    discriminator_inference_model.predict("where is your pen ? <eos>", "i 'm bob . <eos>")
-    discriminator_inference_model.predict("where is your pen ? <eos>", "in my bag . <eos>")
-    discriminator_inference_model.predict("i like you . <eos>", "i like you too . <eos>")
-    discriminator_inference_model.train_one_batch(("hi . <eos>", "hello . <eos>", 1))
-    discriminator_inference_model.train_one_batch(("hi . <eos>", "fuck you . <eos>", 0))
+    discriminator_model = HierarchyDiscriminatorModel(args, origin_data, ctx=mx.context.gpu(2), prefix=prefix)
+    discriminator_model.train()
+    discriminator_model.predict("hi . <eos>", "hello . <eos>")
+    discriminator_model.predict("hi . <eos>", "how are you . <eos>")
+    discriminator_model.predict("hi . <eos>", "i 'm fine . <eos>")
+    discriminator_model.predict("hi . <eos>", "what are you doing ? <eos>")
+    discriminator_model.predict("who are you ? <eos>", "i 'm bob . <eos>")
+    discriminator_model.predict("where is your pen ? <eos>", "i 'm bob . <eos>")
+    discriminator_model.predict("where is your pen ? <eos>", "in my bag . <eos>")
+    discriminator_model.predict("i like you . <eos>", "i like you too . <eos>")
+    discriminator_model.train_one_batch(("hi . <eos>", "hello . <eos>", 1))
+    discriminator_model.train_one_batch(("hi . <eos>", "fuck you . <eos>", 0))
     print 'train one batch finish'
-    discriminator_inference_model.train()
+    #discriminator_inference_model.train()
     print 'finish'
 

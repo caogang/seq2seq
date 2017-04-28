@@ -27,7 +27,7 @@ if __name__ == '__main__':
     args.maxLengthEnco = args.maxLength
     args.maxLengthDeco = args.maxLength + 2
 
-    devs = mx.context.gpu(0)
+    devs = mx.context.gpu(2)
 
     iterations = args.epochRL
     d_steps = args.dStepsRL
@@ -35,20 +35,22 @@ if __name__ == '__main__':
     save_epoch = args.saveEveryRL
     adv_prefix = args.loadPrefixAdv
     adv_load_epoch = args.loadEpochAdv
-
     _, g_arg_params, __ = mx.model.load_checkpoint(adv_prefix + '_g', adv_load_epoch)
+    print 'loaded parameters....'
     inference_model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
                                                        textData, num_hidden, num_embed, num_layer, g_arg_params,
                                                        beam_size,
                                                        ctx=devs, dropout=0.)
-
+    print 'seq2seq loaded'
     #prefix = "../snapshots/discriminator-new-optimizer"
     #prefix = "../snapshots/discriminator"
     discriminator_model = HierarchyDiscriminatorModel(args, textData, ctx=devs, is_train=False,
                                                       prefix=adv_prefix+'_d', load_epoch=adv_load_epoch)
+    print 'discriminator loaded'
 
     policy_gradient_model = PolicyGradientUpdateModel(args.maxLength, batch_size, learning_rate,
                                                       textData, num_hidden, num_embed, num_layer, g_arg_params)
+    print 'policy gradient loaded'
 
     pattern = re.compile(r'<.*>')
 
