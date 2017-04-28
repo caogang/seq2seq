@@ -327,6 +327,7 @@ class Seq2SeqInferenceModelCornellData():
     def __random_pick(self, some_list, probabilities):
         x = random.uniform(0, 1)
         cumulative_probability = 0.0
+        probabilities = probabilities.reshape((-1,)).tolist()
         for item, item_probability in zip(some_list, probabilities):
             cumulative_probability += item_probability
             if x < cumulative_probability:

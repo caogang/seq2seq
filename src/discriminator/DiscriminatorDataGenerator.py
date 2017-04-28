@@ -184,8 +184,7 @@ class DiscriminatorData():
         for qaPair in tmpSamples:
             q = qaPair[0]
             s = inferenceModel.response(inferenceModel.forward_beam(q)[0].get_concat_sentence())
-            print s
-            s = s.rstrip('<eos>')
+            s = s.rstrip(' <eos>')
             negetiveA = textData.sentence2id(s)
             pair = []
             pair.append(q)
@@ -194,12 +193,9 @@ class DiscriminatorData():
             pair.append(0)
             negetiveSamples.append(pair)
 
-            s = inferenceModel.forward_greedy(q)
-            print s
-            s = inferenceModel.forward_samples(q)
-            print s
-            s = s.rstrip('<pad>')
-            s = s.rstrip('<eos>')
+            s = inferenceModel.forward_sample(q)
+            s = s.rstrip(' <pad>')
+            s = s.rstrip(' <eos>')
             negetiveA = textData.sentence2id(s)
             pair = []
             pair.append(q)
@@ -264,7 +260,7 @@ if __name__ == "__main__":
     if args.load is None:
         args.load = 50
 
-    devs = mx.context.gpu(0)
+    devs = mx.context.gpu(2)
     _, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
     model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
                                              originData, num_hidden, num_embed, num_layer,
