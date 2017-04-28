@@ -21,10 +21,11 @@ class SimpleDiscriminatorBatch(object):
         return [(n, x.shape) for n, x in zip(self.label_names, self.label)]
 
 class DiscriminatorDataIter(mx.io.DataIter):
-    def __init__(self, discriminatorData, batchSize, initStates, inputSeqLen, outputSeqLen):
+    def __init__(self, discriminatorData, batchSize, initStates, inputSeqLen, outputSeqLen, validation=False):
         super(DiscriminatorDataIter, self).__init__()
         self.batchSize = batchSize
         self.discriminatorData = discriminatorData
+        self.validation = validation
 
         # Must contain
         self.default_bucket_key = inputSeqLen
@@ -37,7 +38,11 @@ class DiscriminatorDataIter(mx.io.DataIter):
         self.provide_label = [('softmaxLabel', (self.batchSize,))]
         # ----------------
         self.curr_idx = 0
-        self.batches = self.discriminatorData.getBatches()
+
+        if validation:
+            self.batches = self.discriminatorData.getBatches(type='validation')
+        else:
+            self.batches = self.discriminatorData.getBatches()
 
     def __iter__(self):
         return self
@@ -61,5 +66,9 @@ class DiscriminatorDataIter(mx.io.DataIter):
             raise StopIteration
 
     def reset(self):
-        self.batches = self.discriminatorData.getBatches()
+        self.discriminatorData.shuffle()
+        if self.validation:
+            self.batches = self.discriminatorData.getBatches(type='validation')
+        else:
+            self.batches = self.discriminatorData.getBatches()
         self.curr_idx = 0

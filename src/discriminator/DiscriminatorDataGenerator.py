@@ -52,12 +52,20 @@ class DiscriminatorData():
 
         return batch
 
-    def getBatches(self):
+    def getBatches(self, type='train'):
         """
         This function will shuffle first, and return batches
         :return:list<Batch>, guarantee every batch is batchSize
         """
-        self.shuffle()
+        #self.shuffle()
+
+        src_data = None
+        if type == 'train':
+            src_data = self.trainingSamples
+        elif type == 'validation':
+            src_data = self.validationSamples
+        else:
+            raise ValueError("parameter type '%s' is error, should be 'train' or 'validation'." % type)
 
         batches = []
 
@@ -68,10 +76,10 @@ class DiscriminatorData():
             # remove the batch whose length is not equal to batchSize
             removeLast = False
 
-            for i in range(0, self.getSampleSize(), self.args.batchSize):
-                if i + self.args.batchSize >= self.getSampleSize():
+            for i in range(0, len(src_data), self.args.batchSize):
+                if i + self.args.batchSize >= len(src_data):
                     removeLast = True
-                yield self.trainingSamples[i:min(i + self.args.batchSize, self.getSampleSize())], removeLast
+                yield src_data[i:min(i + self.args.batchSize, len(src_data))], removeLast
 
         for samples, last in genNextSamples():
             if last:
@@ -85,6 +93,7 @@ class DiscriminatorData():
         """
         print('Shuffling the dataset...')
         random.shuffle(self.trainingSamples)
+        random.shuffle(self.validationSamples)
         pass
 
     def __checkValidTrainingSamples(self):

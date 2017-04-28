@@ -271,8 +271,13 @@ class HierarchyDiscriminatorModel:
                   ('contentEncoderInitC', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
                   ('inputEncoderInitC', (self.batch_size, self.input_layer_nums, self.input_hidden_nums))]
         init_stats = init_c + init_h
+
         data_train = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.input_seq_len)
+        data_eval = DiscriminatorDataIter(self.data, self.batch_size, init_stats, self.input_seq_len, self.input_seq_len,
+                                          validation=True)
+
         self.train_model.fit(data_train,
+                             eval_data = data_eval,
                              eval_metric = GroupAccuracy(),
                              num_epoch=self.num_epoch,
                              batch_end_callback=mx.callback.Speedometer(self.batch_size, 50),
@@ -355,8 +360,8 @@ if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
     prefix = "../snapshots/discriminator-new-optimizer"
-    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
-    #discriminator_model.train()
+    discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
+    discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
