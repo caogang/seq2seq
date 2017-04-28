@@ -182,12 +182,10 @@ class HierarchyDiscriminatorModel:
         self.output_seq_len = args.maxLengthDeco
 
         self.devs = ctx
+        self.params_valid = False
 
         if args.load is None:
             args.load = 50
-
-        if load_epoch is None:
-            load_epoch = self.args.loadDis
 
         _, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
         model = Seq2SeqInferenceModelCornellData(args.maxLength, 1, self.learning_rate,
@@ -198,7 +196,12 @@ class HierarchyDiscriminatorModel:
         self.data = DiscriminatorData(args, text_data, model, forceRegenerate=False)
         #self.data = DiscriminatorData(args, text_data, None, forceRegenerate=False)
 
-        self.dis_arg_params, self.dis_aux_params = self.load_check_points(prefix, load_epoch)
+        self.dis_arg_params = None
+        self.dis_aux_params = None
+        if load_epoch is not None:
+            self.dis_arg_params, self.dis_aux_params = self.load_check_points(prefix, load_epoch)
+            self.params_valid = True
+
         self.train_model = self.generate_model(self.batch_size, self.dis_arg_params, self.dis_aux_params)
         self.train_one_batch_model = self.generate_model(1, self.dis_arg_params, self.dis_aux_params)
         self.predict_model = self.generate_model(1, self.dis_arg_params, self.dis_aux_params, is_train=False)
@@ -262,7 +265,8 @@ class HierarchyDiscriminatorModel:
         return model
 
     def train(self):
-        self.train_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
+        if self.params_valid:
+            self.train_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
 
         init_h = [('outputEncoderInitH', (self.batch_size, self.output_layer_nums, self.output_hidden_nums)),
                   ('contentEncoderInitH', (self.batch_size, self.content_layer_nums, self.content_hidden_nums)),
@@ -284,8 +288,12 @@ class HierarchyDiscriminatorModel:
                              epoch_end_callback=mx.callback.do_checkpoint(self.prefix,
                                                                           period=100))
         self.dis_arg_params, self.dis_aux_params = self.train_model.get_params()
+        self.params_valid = True
 
     def predict(self, q, a):
+        if not self.params_valid:
+            print 'Error predict before parameters is supplied .'
+            return None
         self.predict_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
 
         batch = self.generate_batch(q, a)
@@ -296,7 +304,8 @@ class HierarchyDiscriminatorModel:
         return prob_list
 
     def train_one_batch(self, batch_tuple):
-        self.train_one_batch_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
+        if self.params_valid:
+            self.train_one_batch_model.set_params(arg_params=self.dis_arg_params, aux_params=self.dis_aux_params, allow_missing=True)
 
         batch = self.generate_batch(batch_tuple[0],
                                     batch_tuple[1],
@@ -307,6 +316,7 @@ class HierarchyDiscriminatorModel:
         self.train_one_batch_model.update()
 
         self.dis_arg_params, self.dis_aux_params = self.train_one_batch_model.get_params()
+        self.params_valid = True
 
     def load_check_points(self, prefix, load_epoch):
         test_sym, dis_arg_params, dis_aux_params = mx.model.load_checkpoint(prefix, load_epoch)
@@ -360,8 +370,8 @@ if __name__ == '__main__':
     args = getArgs()
     origin_data = TextData(args)
     prefix = "../snapshots/discriminator-new-optimizer"
-    discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
-    discriminator_model.train()
+    #discriminator_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
+    #discriminator_model.train()
     discriminator_inference_model = HierarchyDiscriminatorModel(args, origin_data, prefix=prefix)
     discriminator_inference_model.predict("hi . <eos>", "hello . <eos>")
     discriminator_inference_model.predict("hi . <eos>", "how are you . <eos>")
