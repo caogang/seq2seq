@@ -324,6 +324,39 @@ class Seq2SeqInferenceModelCornellData():
 
         return self.response(result)
 
+    def __random_pick(self, some_list, probabilities):
+        x = random.uniform(0, 1)
+        cumulative_probability = 0.0
+        for item, item_probability in zip(some_list, probabilities):
+            cumulative_probability += item_probability
+            if x < cumulative_probability:
+                break
+        return item
+
+    def forward_sample(self, input_data):
+        next_hidden, next_cell = self.forward_encoding(input_data)
+        self.decoding_executor.arg_dict["decoding_data"][:] = self.textData.goToken
+        next_cell.copyto(self.decoding_executor.arg_dict["decode_init_c"])
+        next_hidden.copyto(self.decoding_executor.arg_dict["decode_init_h"])
+
+        # logging.info(self.encoding_executor.arg_dict["embed_weight"].asnumpy())
+        # logging.info(self.encoding_executor.arg_dict["encode_weight"].asnumpy())
+        result = []
+        for seqidx in xrange(self.seq_len + 2):
+            self.decoding_executor.forward()
+            next_hidden = self.decoding_executor.outputs[1]
+            next_cell = self.decoding_executor.outputs[2]
+
+            pred = self.__random_pick(range(0, self.textData.getVocabularySize()),
+                                      self.decoding_executor.outputs[0].asnumpy())
+
+            result.append(pred)
+            self.decoding_executor.arg_dict["decoding_data"][:] = pred
+            next_cell.copyto(self.decoding_executor.arg_dict["decode_init_c"])
+            next_hidden.copyto(self.decoding_executor.arg_dict["decode_init_h"])
+
+        return self.response(result)
+
     def forward_beam(self, input_data):
         encoding_hidden, encoding_cell = self.forward_encoding(input_data)
         self.decoding_executor.arg_dict["decoding_data"][:] = self.textData.goToken

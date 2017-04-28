@@ -170,19 +170,35 @@ class DiscriminatorData():
     def generateNegetiveSamples(self, textData, inferenceModel):
         # [[list<id>, list<id>], ...] no padding and reverse
         positiveSamples = copy.deepcopy(textData.trainingSamples)
+        tmpSamples = random.sample(positiveSamples, len(positiveSamples) // 2)
         negetiveSamples = []
 
         process = 0
-        lenMax = len(positiveSamples)
+        lenMax = len(tmpSamples)
 
         # add human label
         for qaPair in positiveSamples:
             # human label
             qaPair.append(1)
 
-        for qaPair in positiveSamples:
+        for qaPair in tmpSamples:
             q = qaPair[0]
             s = inferenceModel.response(inferenceModel.forward_beam(q)[0].get_concat_sentence())
+            print s
+            s = s.rstrip('<eos>')
+            negetiveA = textData.sentence2id(s)
+            pair = []
+            pair.append(q)
+            pair.append(negetiveA)
+            # machine label
+            pair.append(0)
+            negetiveSamples.append(pair)
+
+            s = inferenceModel.forward_greedy(q)
+            print s
+            s = inferenceModel.forward_samples(q)
+            print s
+            s = s.rstrip('<pad>')
             s = s.rstrip('<eos>')
             negetiveA = textData.sentence2id(s)
             pair = []
