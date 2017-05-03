@@ -644,10 +644,10 @@ class CornellDataIter(mx.io.DataIter):
             raise StopIteration
 
     def reset(self):
-        self.textData.shuffle()
         if self.validation:
             self.batches = self.textData.getBatches(type='validation')
         else:
+            self.textData.shuffle()
             self.batches = self.textData.getBatches()
         self.curr_idx = 0
 

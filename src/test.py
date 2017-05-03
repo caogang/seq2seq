@@ -89,6 +89,7 @@ if __name__ == "__main__":
     args.maxLengthEnco = args.maxLength
     args.maxLengthDeco = args.maxLength + 2
 
+    textData.shuffle()
     devs = mx.context.gpu(2)
 
     # Put needed training stage here
@@ -113,5 +114,12 @@ if __name__ == "__main__":
                                      learning_rate = learning_rate,
                                      clip_gradient = clip_norm)
 
-        model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 12000)
-        model.score(forward_data_eval, GroupPerplexity(None))
+        model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 1, ctx=devs)
+        #model = mx.model.FeedForward.load("../snapshots/seq2seq_newdata", 26, ctx=devs)
+        model.score(forward_data_eval, GroupPerplexity(None), display=True)
+        model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 100, ctx=devs)
+        model.score(forward_data_eval, GroupPerplexity(None), display=True)
+        model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 12000, ctx=devs)
+        model.score(forward_data_eval, GroupPerplexity(None), display=True)
+        model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 14000, ctx=devs)
+        model.score(forward_data_eval, GroupPerplexity(None), display=True)
