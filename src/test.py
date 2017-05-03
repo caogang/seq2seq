@@ -3,6 +3,8 @@ import numpy as np
 import data_utils
 from bucket_io import BucketSentenceIter
 from lstm import seq2seq_lstm_unroll
+from seq2seq_model import Seq2SeqInferenceModelCornellData
+
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(message)s')
 logger = logging.getLogger(__name__)
@@ -123,3 +125,33 @@ if __name__ == "__main__":
         model.score(forward_data_eval, GroupPerplexity(None), display=True)
         model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 14000, ctx=devs)
         model.score(forward_data_eval, GroupPerplexity(None), display=True)
+    elif 2 in test_stage:
+
+        iterations = 100
+
+        num_layer = args.numLayers
+        learning_rate = args.learningRate
+        beam_size = 5  # 10
+
+        _, arg_params, __ = mx.model.load_checkpoint("../snapshots/policy_gradient_g", 12000)
+        model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
+                                                 textData, num_hidden, num_embed, num_layer, arg_params, beam_size,
+                                                 ctx=devs, dropout=0.)
+        for i in xrange(iterations):
+            sample_qa = textData.get_random_qapair()
+            q = sample_qa[0]
+            a = sample_qa[1]
+            print ">> "
+            print q
+            print "Real Response:"
+            print a
+            print "greedy:"
+            print model.forward_greedy(q)
+            print "beam search:"
+            # for response in model.forward_beam(conversation_input):
+            # logger.info(response.get_concat_sentence())
+            # logger.info(model.response(response.get_concat_sentence()))
+            print model.response(model.forward_beam(q)[0].get_concat_sentence())
+            print "sample:"
+            print model.forward_sample(q)
+            print "\n"
