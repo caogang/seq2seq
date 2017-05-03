@@ -60,24 +60,30 @@ if __name__ == '__main__':
             sample_qa = textData.get_random_qapair()
             q = sample_qa[0]
             a = sample_qa[1]
-            a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
+            #a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
+            a_machine = inference_model.forward_sample(q)
+            a_machine = a_machine.rstrip(' <pad>')
+            a_machine = a_machine.rstrip(' <eos>')
             positive_batch = (q, a, 1)
             negative_batch = (q, a_machine, 0)
             a_machine_list = a_machine.split(' ')
             extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
 
-            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1 or len(a_machine_list) <= 1:
-                if len(a_machine_list) > args.maxLength + 1:
+            while extra_num > 0 or len(a_machine_list) > args.maxLength + 0 or len(a_machine_list) <= 0:
+                if len(a_machine_list) > args.maxLength + 0:
                     logging.info('Out of max length')
                     break
-                if len(a_machine_list) <= 1:
+                if len(a_machine_list) <= 0:
                     logging.info('Too short')
-                if extra_num > 1:
+                if extra_num > 0:
                     logging.info('Containing <*> string')
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
                 a = sample_qa[1]
-                a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
+                #a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
+                a_machine = inference_model.forward_sample(q)
+                a_machine = a_machine.rstrip(' <pad>')
+                a_machine = a_machine.rstrip(' <eos>')
                 positive_batch = (q, a, 1)
                 negative_batch = (q, a_machine, 0)
                 a_machine_list = a_machine.split(' ')
@@ -93,20 +99,21 @@ if __name__ == '__main__':
             # a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
             a_machine = inference_model.forward_sample(q)
             a_machine = a_machine.rstrip(' <pad>')
+            a_machine = a_machine.rstrip(' <eos>')
             a_machine_list = a_machine.split(' ')
             extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
 
-            while extra_num > 1 or len(a_machine_list) > args.maxLength + 1 or len(a_machine_list) <= 1:
-                if len(a_machine_list) > args.maxLength + 1:
+            while extra_num > 0 or len(a_machine_list) > args.maxLength + 0 or len(a_machine_list) <= 0:
+                if len(a_machine_list) > args.maxLength + 0:
                     logging.info('Out of max length')
                     #pred_grad = policy_gradient_model.forward(q, a_machine)
                     #gradient = mx.nd.array(pred_grad * 0.1, ctx=devs)
                     #policy_gradient_model.backward(gradient)
                     #policy_gradient_model.update_params()
                     break
-                if len(a_machine_list) <= 1:
+                if len(a_machine_list) <= 0:
                     logging.info('Too short')
-                if extra_num > 1:
+                if extra_num > 0:
                     logging.info('Containing <*> string')
                 sample_qa = textData.get_random_qapair()
                 q = sample_qa[0]
@@ -114,6 +121,7 @@ if __name__ == '__main__':
                 # a_machine = inference_model.response(inference_model.forward_beam(q)[0].get_concat_sentence())
                 a_machine = inference_model.forward_sample(q)
                 a_machine = a_machine.rstrip(' <pad>')
+                a_machine = a_machine.rstrip(' <eos>')
                 a_machine_list = a_machine.split(' ')
                 extra_num = len(a_machine_list) - [pattern.match(x) for x in a_machine_list].count(None)
 

@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     devs = mx.context.gpu(1)
     #_, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", args.load)
-    _, arg_params, __ = mx.model.load_checkpoint("../snapshots/policy_gradient_g", 23500)
+    _, arg_params, __ = mx.model.load_checkpoint("../snapshots/policy_gradient_g", 12000)
     model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
                 textData, num_hidden, num_embed, num_layer, arg_params, beam_size, ctx=devs, dropout=0. )
 
@@ -54,5 +54,8 @@ if __name__ == "__main__":
             # logger.info(response.get_concat_sentence())
             # logger.info(model.response(response.get_concat_sentence()))
         output += model.response(model.forward_beam(conversation_input)[0].get_concat_sentence())
+        output += "\n"
+        output += "sample:\n"
+        output += model.forward_sample(conversation_input)
         output += "\n\n"
     print output
