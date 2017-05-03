@@ -552,10 +552,19 @@ class TextData:
             print()
         pass
 
-    def get_random_qapair(self):
-        idSample = random.randint(0, len(self.trainingSamples) - 1)
-        return (self.sequence2str(self.trainingSamples[idSample][0], clean=True),
+    def get_random_qapair(self, type='train'):
+        if type == 'train':
+            idSample = random.randint(0, len(self.trainingSamples) - 1)
+            return (self.sequence2str(self.trainingSamples[idSample][0], clean=True),
                 self.sequence2str(self.trainingSamples[idSample][1], clean=True))
+        elif type == 'validation':
+            idSample = random.randint(0, len(self.validationSamples) - 1)
+            return (self.sequence2str(self.validationSamples[idSample][0], clean=True),
+                self.sequence2str(self.validationSamples[idSample][1], clean=True))
+        elif type == 'test':
+            idSample = random.randint(0, len(self.testSamples) - 1)
+            return (self.sequence2str(self.testSamples[idSample][0], clean=True),
+                self.sequence2str(self.testSamples[idSample][1], clean=True))
 
 def tqdm_wrap(iterable, *args, **kwargs):
     """Forward an iterable eventually wrapped around a tqdm decorator
