@@ -276,7 +276,7 @@ if __name__ == "__main__":
                                              arg_params, beam_size,
                                              ctx=devs, dropout=0.)
 
-    data = DiscriminatorData(args, originData, model, forceRegenerate=False)
+    data = DiscriminatorData(args, originData, model, forceRegenerate=True)
     batches = data.getBatches()
     print batches[0].question
     print batches[0].answer

@@ -95,7 +95,7 @@ if __name__ == "__main__":
     devs = mx.context.gpu(2)
 
     # Put needed training stage here
-    test_stage = [1]
+    test_stage = [2]
 
     if 1 in test_stage:
         def sym_gen(seq_len):
@@ -123,35 +123,35 @@ if __name__ == "__main__":
         model.score(forward_data_eval, GroupPerplexity(None), display=True)
         model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 12000, ctx=devs)
         model.score(forward_data_eval, GroupPerplexity(None), display=True)
-        model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 14000, ctx=devs)
+        model = mx.model.FeedForward.load("../snapshots/policy_gradient_g", 2000, ctx=devs)
         model.score(forward_data_eval, GroupPerplexity(None), display=True)
-    elif 2 in test_stage:
+    if 2 in test_stage:
 
         iterations = 100
 
+        batch_size = 1
         num_layer = args.numLayers
         learning_rate = args.learningRate
         beam_size = 5  # 10
 
-        _, arg_params, __ = mx.model.load_checkpoint("../snapshots/policy_gradient_g", 12000)
+        #_, arg_params, __ = mx.model.load_checkpoint("../snapshots/seq2seq_newdata", 26)
+        _, arg_params, __ = mx.model.load_checkpoint("../snapshots/policy_gradient_g", args.loadEpochAdv)
         model = Seq2SeqInferenceModelCornellData(args.maxLength, batch_size, learning_rate,
                                                  textData, num_hidden, num_embed, num_layer, arg_params, beam_size,
                                                  ctx=devs, dropout=0.)
         for i in xrange(iterations):
-            sample_qa = textData.get_random_qapair()
+            sample_qa = textData.get_random_qapair(type='test')
             q = sample_qa[0]
             a = sample_qa[1]
-            print ">> "
-            print q
+            print ">> " + q
             print "Real Response:"
             print a
             print "greedy:"
             print model.forward_greedy(q)
-            print "beam search:"
-            # for response in model.forward_beam(conversation_input):
-            # logger.info(response.get_concat_sentence())
-            # logger.info(model.response(response.get_concat_sentence()))
-            print model.response(model.forward_beam(q)[0].get_concat_sentence())
             print "sample:"
             print model.forward_sample(q)
+            print "beam search:"
+            for response in model.forward_beam(q):
+                print model.response(response.get_concat_sentence())
+            # print model.response(model.forward_beam(q)[0].get_concat_sentence())
             print "\n"
